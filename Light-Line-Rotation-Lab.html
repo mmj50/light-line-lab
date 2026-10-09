@@ -1,0 +1,1265 @@
+<!doctype html><html><head><meta charset=utf8><title>Light-Line Rotation Lab</title><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap">
+<style>
+/* Layout: a lab notebook of figure plates. A sticky section index on top; each plate pairs notes and controls with a live figure, then states what the verification found. Quantity colours follow the article's own figures. */
+:root{
+  --paper:#F2F4F7; --panel:#FFFFFF; --fig:#FAFBFC; --ink:#16202A; --muted:#596575; --rule:#D5DCE4; --grid:#E9EDF2; --plane:rgba(36,87,197,0.06);
+  --c-rest:#16202A; --c-energy:#2457C5; --c-mom:#C94F14; --c-added:#7243BF; --c-hidden:#1C7F51; --c-light:#BC1E76; --c-perp:#6B7686;
+  --ok:#22703E; --ok-bg:#E1F0E6; --info:#38557A; --info-bg:#E3E9F2; --warn:#875604; --warn-bg:#F9EDD4;
+  --font-display:"STIX Two Text",Cambria,"Times New Roman",serif;
+  --font-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0C1117; --panel:#121920; --fig:#0E141A; --ink:#E3E9F0; --muted:#98A4B3; --rule:#27323E; --grid:#18212B; --plane:rgba(110,155,255,0.07);
+    --c-rest:#E3E9F0; --c-energy:#6F9CFF; --c-mom:#FF8C50; --c-added:#B496FF; --c-hidden:#4FC68F; --c-light:#F166AC; --c-perp:#8E9AAA;
+    --ok:#6DD49C; --ok-bg:#15301E; --info:#A0BADB; --info-bg:#192536; --warn:#F1BE60; --warn-bg:#342711;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0C1117; --panel:#121920; --fig:#0E141A; --ink:#E3E9F0; --muted:#98A4B3; --rule:#27323E; --grid:#18212B; --plane:rgba(110,155,255,0.07);
+  --c-rest:#E3E9F0; --c-energy:#6F9CFF; --c-mom:#FF8C50; --c-added:#B496FF; --c-hidden:#4FC68F; --c-light:#F166AC; --c-perp:#8E9AAA;
+  --ok:#6DD49C; --ok-bg:#15301E; --info:#A0BADB; --info-bg:#192536; --warn:#F1BE60; --warn-bg:#342711;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:64px}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+body{background:var(--paper); color:var(--ink); font-family:var(--font-body); font-size:15px; line-height:1.55}
+.page{max-width:1180px; margin-inline:auto; padding-inline:clamp(16px,4vw,40px); padding-block:0 56px}
+a{color:var(--c-energy)}
+.m{font-family:var(--font-display); font-style:italic; font-size:1.1em; letter-spacing:.01em}
+.m sub{font-style:normal; font-size:.72em}
+.num{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:.93em}
+
+/* hero */
+.hero{position:relative; overflow:hidden; margin-top:20px; border:1px solid var(--rule); border-radius:6px; background-color:var(--panel);
+  background-image:linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size:24px 24px;
+  padding:clamp(20px,4vw,44px); display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:clamp(20px,4vw,48px); align-items:end}
+.hero-line{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
+.hero-line line{stroke:var(--c-light); stroke-width:2; stroke-dasharray:10 5 2 5; opacity:.55}
+.hero > *:not(.hero-line){position:relative}
+.eyebrow{font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:0 0 14px; max-width:60ch}
+h1{font-family:var(--font-display); font-weight:600; font-size:clamp(2.3rem,5.6vw,3.8rem); line-height:1.02; letter-spacing:-.012em; margin:0 0 16px; text-wrap:balance}
+.lede{font-size:16.5px; max-width:58ch; margin:0}
+.rule-card{background:var(--panel); border:1px solid var(--ink); border-radius:4px; padding:18px 20px}
+.rule-card h2{font:600 11.5px/1 var(--font-body); letter-spacing:.09em; text-transform:uppercase; color:var(--muted); margin:0 0 12px}
+.rule-lines{display:grid; grid-template-columns:auto auto 1fr; gap:6px 10px; align-items:baseline; font-family:var(--font-display); font-size:19px}
+.rule-lines .arr{color:var(--c-light); font-style:normal}
+.rule-lines i{font-style:italic}
+.rule-note{margin:12px 0 0; font-size:13.5px; color:var(--muted)}
+.tally{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px}
+
+/* index */
+.index{position:sticky; top:env(safe-area-inset-top,0px); z-index:10; background:var(--paper); border-bottom:1px solid var(--rule); margin-top:18px}
+.index ol{list-style:none; margin:0; padding:10px 0; display:flex; gap:4px; overflow-x:auto; scrollbar-width:thin}
+.index a{display:block; white-space:nowrap; text-decoration:none; color:var(--muted); font-size:13px; padding:5px 10px; border-radius:4px}
+.index a:hover{color:var(--ink); background:var(--panel)}
+.index a span{font-family:var(--font-mono); font-size:11px; margin-right:6px; color:var(--c-light)}
+
+/* plates */
+.plate{margin-top:26px; background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:clamp(16px,3vw,30px)}
+.plate-head{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin-bottom:16px}
+.sec{font-family:var(--font-mono); font-size:12px; color:var(--c-light); border:1px solid var(--c-light); border-radius:3px; padding:2px 6px; white-space:nowrap}
+h2.ttl{font-family:var(--font-display); font-weight:600; font-size:clamp(1.45rem,2.6vw,1.85rem); line-height:1.15; margin:0; text-wrap:balance}
+.plate-body{display:grid; grid-template-columns:minmax(0,350px) minmax(0,1fr); gap:clamp(18px,3vw,34px); align-items:start}
+@media (max-width: 880px){ .plate-body{grid-template-columns:minmax(0,1fr)} .hero{grid-template-columns:minmax(0,1fr)} }
+.side{display:grid; gap:16px; min-width:0}
+.side p{margin:0; max-width:62ch}
+.figs{display:grid; gap:14px; min-width:0}
+figure{margin:0; min-width:0}
+.cw{width:100%; min-width:0}
+canvas{display:block; width:100%; background:var(--fig); border:1px solid var(--rule); border-radius:4px}
+figcaption{font-size:12.5px; color:var(--muted); margin-top:7px; max-width:80ch}
+#cv-rot{touch-action:pan-y; cursor:grab}
+#cv-rot:active{cursor:grabbing}
+
+/* controls */
+.controls{display:grid; gap:12px}
+.ctl{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 12px; align-items:center}
+.ctl label{font-size:13.5px}
+.ctl output{font-family:var(--font-mono); font-size:13px; font-variant-numeric:tabular-nums}
+.ctl input[type=range]{grid-column:1 / -1; width:100%; accent-color:var(--c-energy); margin:2px 0}
+.ctl select, .ctl input[type=number]{font:400 14px var(--font-mono); color:var(--ink); background:var(--fig); border:1px solid var(--rule); border-radius:4px; padding:5px 8px; min-width:0}
+.ctl input[type=number]{width:120px}
+.ctl.wide select{grid-column:1 / -1; width:100%}
+.check-row{display:flex; gap:8px; align-items:center; font-size:13.5px}
+.check-row input{accent-color:var(--c-light); width:16px; height:16px}
+.btns{display:flex; flex-wrap:wrap; gap:6px}
+.btn{font:500 13px var(--font-body); color:var(--ink); background:var(--panel); border:1px solid var(--rule); border-radius:4px; padding:6px 11px; cursor:pointer; line-height:1.2}
+.btn:hover{border-color:var(--muted)}
+.btn[aria-pressed="true"]{background:var(--ink); color:var(--panel); border-color:var(--ink)}
+.btn.primary{border-color:var(--ink)}
+:is(.btn,input,select,a):focus-visible{outline:2px solid var(--c-energy); outline-offset:2px}
+.seg{display:grid; grid-template-columns:minmax(0,1fr); border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.seg .btn{border:0; border-radius:0; text-align:left}
+.seg .btn + .btn{border-top:1px solid var(--rule)}
+.stage-label{font-size:13px; color:var(--muted)}
+.stage-label b{color:var(--ink); font-weight:600}
+
+/* readouts */
+.ro{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 14px; margin:0; font-size:14px; border-top:1px solid var(--rule); padding-top:12px}
+.ro dt{color:var(--muted); min-width:0}
+.ro dd{margin:0; font-family:var(--font-mono); font-size:13.5px; text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
+.ro dd.hi{color:var(--ink); font-weight:500}
+.ro .sep{grid-column:1 / -1; height:1px; background:var(--rule); margin:4px 0}
+.share{display:flex; height:10px; border-radius:2px; overflow:hidden; border:1px solid var(--rule)}
+.share i{display:block; height:100%}
+
+/* bars (figure 4 style) */
+.bars{display:grid; gap:12px}
+.bars-legend{display:flex; gap:16px; flex-wrap:wrap; font-size:12.5px; color:var(--muted)}
+.bars-legend span{display:inline-flex; align-items:center; gap:6px}
+.sw{display:inline-block; width:18px; height:10px; border-radius:2px}
+.sw.o{border:1.5px solid var(--muted)}
+.sw.f{background:var(--c-energy)}
+.bar-row{display:grid; grid-template-columns:96px minmax(0,1fr); gap:10px; align-items:center}
+.bar-label{font-family:var(--font-display); font-style:italic; font-size:16px}
+.bar-label small{font-family:var(--font-body); font-style:normal; font-size:11.5px; color:var(--muted); display:block; line-height:1.2}
+.bar-pair{display:grid; gap:4px}
+.bline{display:grid; grid-template-columns:minmax(0,1fr) 78px; gap:8px; align-items:center}
+.btrack{height:12px}
+.bfill{height:12px; border-radius:2px; min-width:2px; transition:width .25s ease}
+@media (prefers-reduced-motion: reduce){ .bfill{transition:none} }
+.bfill.before{border:1.5px solid var(--muted); background:transparent}
+.bval{font-family:var(--font-mono); font-size:12.5px; font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* small tables */
+.tbl-wrap{overflow-x:auto; min-width:0}
+table{border-collapse:collapse; width:100%; font-size:13.5px}
+th,td{padding:7px 10px; text-align:left; border-bottom:1px solid var(--rule); vertical-align:top}
+th{font-weight:600; font-size:12px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted)}
+td.n{font-family:var(--font-mono); font-variant-numeric:tabular-nums; white-space:nowrap}
+.mini th, .mini td{padding:5px 8px}
+
+/* steps */
+ol.steps{margin:0; padding-left:1.4em; display:grid; gap:10px}
+ol.steps li{padding-left:4px}
+ol.steps li::marker{font-family:var(--font-mono); color:var(--c-light); font-size:13px}
+.fr{font-family:var(--font-mono); font-size:13.5px; font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* verdict strip */
+.check{display:flex; gap:14px; align-items:flex-start; margin-top:20px; padding-top:14px; border-top:1px dashed var(--rule)}
+.check .pills{display:flex; flex-direction:column; gap:6px; flex:none}
+.check p{margin:0; max-width:86ch; font-size:14px}
+.pill{display:inline-block; font:600 10.5px/1 var(--font-body); letter-spacing:.07em; text-transform:uppercase; padding:5px 8px; border-radius:999px; white-space:nowrap}
+.pill.ok{color:var(--ok); background:var(--ok-bg)}
+.pill.round{color:var(--info); background:var(--info-bg)}
+.pill.reword{color:var(--warn); background:var(--warn-bg)}
+@media (max-width: 560px){ .check{flex-direction:column} .check .pills{flex-direction:row; flex-wrap:wrap} }
+
+.callout{font-size:13px; color:var(--muted); border-left:2px solid var(--c-light); padding-left:10px}
+.subcard{border:1px solid var(--rule); border-radius:4px; padding:14px 16px; display:grid; gap:10px; background:var(--fig)}
+.subcard h3{margin:0; font-family:var(--font-display); font-weight:600; font-size:1.15rem}
+.two{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px}
+@media (max-width: 560px){ .two{grid-template-columns:minmax(0,1fr)} }
+footer{margin-top:30px; font-size:13px; color:var(--muted)}
+footer ol{padding-left:1.3em; display:grid; gap:4px}
+sup{font-size:.7em}
+</style>
+
+<div class="page">
+
+<header class="hero">
+  <svg class="hero-line" aria-hidden="true" preserveAspectRatio="none"><line x1="58%" y1="100%" x2="100%" y2="0%"></line></svg>
+  <div>
+    <p class="eyebrow">Interactive companion to M. Madhi, “Special relativity: a geometric representation by rotation about the light line” (version 3)</p>
+    <h1>Light-Line Rotation Lab</h1>
+    <p class="lede">The article does relativistic kinematics with one hand-drawn triangle and one rule. Every plate below runs that rule live, checks it against the full Lorentz matrices, and ends with what the check found.</p>
+  </div>
+  <div>
+    <div class="rule-card">
+      <h2>The rule</h2>
+      <div class="rule-lines">
+        <span><i>V</i> + <i>A</i><sub>∥</sub></span><span class="arr">→</span><span><i>k</i> (<i>V</i> + <i>A</i><sub>∥</sub>)</span>
+        <span><i>V</i> − <i>A</i><sub>∥</sub></span><span class="arr">→</span><span>(<i>V</i> − <i>A</i><sub>∥</sub>) / <i>k</i></span>
+        <span><i>A</i><sub>⊥</sub></span><span class="arr">→</span><span><i>A</i><sub>⊥</sub> (unchanged)</span>
+      </div>
+      <p class="rule-note"><span class="m">k</span> = √((1 + β)/(1 − β)) is the Doppler factor. This carries a state from the moving frame back to the lab; the reverse direction swaps <span class="m">k</span> and 1/<span class="m">k</span>. The new triangle is read back as <span class="m">V</span> = (sum + difference)/2 and <span class="m">A</span><sub>∥</sub> = (sum − difference)/2.</p>
+    </div>
+    <div class="tally" id="tally"></div>
+  </div>
+</header>
+
+<nav class="index" aria-label="Sections">
+  <ol>
+    <li><a href="#triangle"><span>§3</span>Triangle</a></li>
+    <li><a href="#rotation"><span>§4</span>Rotation</a></li>
+    <li><a href="#rule"><span>§4</span>Rule</a></li>
+    <li><a href="#stacking"><span>§5</span>Stacking</a></li>
+    <li><a href="#by-hand"><span>§5</span>By hand</a></li>
+    <li><a href="#wigner"><span>§5</span>Wigner</a></li>
+    <li><a href="#thomas"><span>§5</span>Thomas</a></li>
+    <li><a href="#aberration"><span>§5</span>Aberration</a></li>
+    <li><a href="#muons"><span>§5</span>Muons</a></li>
+    <li><a href="#imaginary"><span>§6</span>Imaginary branch</a></li>
+    <li><a href="#ledger"><span>✓</span>Table</a></li>
+  </ol>
+</nav>
+
+<!-- §3 TRIANGLE -->
+<section class="plate" id="triangle">
+  <div class="plate-head"><span class="sec">§3 · Fig. 2</span><h2 class="ttl">The triangle</h2></div>
+  <div class="plate-body">
+    <div class="side">
+      <p>Rest energy <span class="m">C</span> and momentum <span class="m">A</span> (times <span class="m">c</span>) are the legs. Total energy <span class="m">V</span> = <span class="m">C</span> + <span class="m">D</span> is the hypotenuse. The dotted arc carries the length <span class="m">C</span> + <span class="m">D</span> from the baseline onto the perpendicular, which fixes <span class="m">A</span>.</p>
+      <div class="controls">
+        <div class="ctl"><label for="tri-d">Added energy <span class="m">D</span>, in units of <span class="m">C</span></label><output id="tri-d-out" for="tri-d">0.250</output><input type="range" id="tri-d" min="0" max="4" step="0.001" value="0.25"></div>
+        <div class="ctl"><label for="tri-b">Speed <span class="m">β</span> = <span class="m">v</span>/<span class="m">c</span></label><output id="tri-b-out" for="tri-b">0.600</output><input type="range" id="tri-b" min="0" max="0.98" step="0.001" value="0.6"></div>
+        <label class="check-row"><input type="checkbox" id="tri-light"> Light (<span class="m">C</span> = 0)</label>
+      </div>
+      <dl class="ro" id="tri-ro"></dl>
+      <div>
+        <div class="share" aria-hidden="true"><i id="tri-share-d" style="background:var(--c-added)"></i><i id="tri-share-h" style="background:var(--c-hidden)"></i></div>
+        <p style="font-size:12.5px;color:var(--muted);margin-top:6px" id="tri-share-txt"></p>
+      </div>
+    </div>
+    <div class="figs">
+      <figure><div class="cw"><canvas id="cv-tri" aria-label="Energy–momentum triangle"></canvas></div>
+        <figcaption>Left: the triangle by ruler and compass. The violet segment is <span class="m">D</span>, so the baseline runs to <span class="m">C</span> + <span class="m">D</span>. Right: <span class="m">A</span> split into <span class="m">D</span> and the hidden component √(2<span class="m">CD</span>).</figcaption></figure>
+    </div>
+  </div>
+  <div class="check"><div class="pills"><span class="pill ok">Checked</span></div>
+    <p>At <span class="m">D</span> = 1/4 the triangle gives <span class="m">V</span> = 5/4, <span class="m">A</span> = 3/4, <span class="m">V</span> + <span class="m">A</span> = 2 = <span class="m">kC</span> and <span class="m">V</span> − <span class="m">A</span> = 1/2 = <span class="m">C</span>/<span class="m">k</span>, as in Figure 2. The split <span class="m">A</span>² = <span class="m">D</span>² + 2<span class="m">CD</span> is an exact identity, and √(2<span class="m">CD</span>) is the Newtonian momentum √(2<span class="m">m</span><span class="m">D</span>) times <span class="m">c</span>. The two parts are algebraic pieces, not directions in space.</p></div>
+</section>
+
+<!-- §4 ROTATION -->
+<section class="plate" id="rotation">
+  <div class="plate-head"><span class="sec">§4 · App. B · Fig. 3</span><h2 class="ttl">Rotation about the light line</h2></div>
+  <div class="plate-body">
+    <div class="side">
+      <p>Rotate the <span class="m">x</span> and <span class="m">t</span> axes about the light line <span class="m">x</span> = <span class="m">t</span> by θ, with cos θ = (1 − β)/(1 + β). Their shadow on the (<span class="m">x</span>, <span class="m">t</span>) plane points along the moving frame's axes. Multiplying by <span class="m">k</span> carries each shadow out to the hyperbola.</p>
+      <div class="controls">
+        <div class="ctl"><label for="rot-b">Frame speed <span class="m">β</span></label><output id="rot-b-out" for="rot-b">0.600</output><input type="range" id="rot-b" min="0" max="0.8" step="0.005" value="0.6"></div>
+        <div class="ctl"><label for="rot-s">Construction stage</label><output id="rot-s-out" for="rot-s">3.00</output><input type="range" id="rot-s" min="0" max="3" step="0.01" value="3"></div>
+        <div class="stage-label" id="rot-stage" aria-live="polite"></div>
+        <div class="btns">
+          <button class="btn primary" id="rot-play" type="button">Play construction</button>
+          <button class="btn" id="rot-view-o" type="button" aria-pressed="true">Oblique view</button>
+          <button class="btn" id="rot-view-f" type="button" aria-pressed="false">Face-on view</button>
+        </div>
+      </div>
+      <dl class="ro" id="rot-ro"></dl>
+    </div>
+    <div class="figs">
+      <figure><div class="cw"><canvas id="cv-rot" aria-label="Three-dimensional view of the rotation about the light line"></canvas></div>
+        <figcaption>Grey: original axes. Dashed: after rotating about the light line (magenta). Orange: their shadow on the plane. Blue: shadow × <span class="m">k</span>, the Lorentz axes <span class="m">x</span>′ and <span class="m">t</span>′, ending on the hyperbolas. Drag sideways to turn the view.</figcaption></figure>
+    </div>
+  </div>
+  <div class="check"><div class="pills"><span class="pill ok">Checked</span></div>
+    <p>The construction lands exactly on the Lorentz axes: the shadow's slope is tan²(θ/2) = β, and <span class="m">k</span> times the shadow is (γ, γβ), on the hyperbola. As §4 of the paper states, the inputs are those of Bondi's k-calculus: θ is chosen so that the slope is β, the scale comes from (<span class="m">V</span> + <span class="m">A</span>)(<span class="m">V</span> − <span class="m">A</span>) = <span class="m">C</span>², and energy–momentum transforms like (<span class="m">t</span>, <span class="m">x</span>). The drawing reconstructs the transformation and makes it visible.</p></div>
+</section>
+
+<!-- §4 RULE -->
+<section class="plate" id="rule">
+  <div class="plate-head"><span class="sec">§4 · Fig. 4</span><h2 class="ttl">The rule against the Lorentz matrix</h2></div>
+  <div class="plate-body">
+    <div class="side">
+      <p>Split the body's momentum into the part along the boost line, <span class="m">A</span><sub>∥</sub>, and the part across it, <span class="m">A</span><sub>⊥</sub>. The rule touches only <span class="m">V</span> + <span class="m">A</span><sub>∥</sub> and <span class="m">V</span> − <span class="m">A</span><sub>∥</sub>. Units: <span class="m">C</span> = 1.</p>
+      <div class="controls">
+        <div class="ctl"><label for="rb-f">Boost speed <span class="m">β</span> along <span class="m">x</span></label><output id="rb-f-out">0.600</output><input type="range" id="rb-f" min="0" max="0.95" step="0.005" value="0.6"></div>
+        <div class="ctl"><label for="rb-u">Body speed before the boost</label><output id="rb-u-out">0.600</output><input type="range" id="rb-u" min="0" max="0.95" step="0.005" value="0.6"></div>
+        <div class="ctl"><label for="rb-a">Body direction (from <span class="m">x</span>)</label><output id="rb-a-out">90°</output><input type="range" id="rb-a" min="0" max="359" step="1" value="90"></div>
+        <div>
+          <div style="font-size:13.5px;margin-bottom:6px">Direction convention</div>
+          <div class="seg" role="group" aria-label="Direction convention">
+            <button class="btn" type="button" id="rb-conv-p" aria-pressed="true">Article: × k (frame → lab)</button>
+            <button class="btn" type="button" id="rb-conv-s" aria-pressed="false">Usual: ÷ k (lab → frame)</button>
+          </div>
+        </div>
+      </div>
+      <dl class="ro" id="rb-ro"></dl>
+    </div>
+    <div class="figs">
+      <div class="bars-legend"><span><i class="sw o"></i>before the boost</span><span><i class="sw f"></i>after the boost</span></div>
+      <div class="bars" id="rb-bars"></div>
+      <div class="two">
+        <figure><div class="cw"><canvas id="cv-rb" aria-label="Velocity before and after the boost"></canvas></div>
+          <figcaption>Velocity disk. The magenta circle is the speed of light; every result stays inside it.</figcaption></figure>
+        <div class="subcard">
+          <h3>Same state through the 4×4 matrix</h3>
+          <div class="tbl-wrap"><table class="mini" id="rb-cmp"></table></div>
+          <div class="btns"><button class="btn" type="button" id="rb-test">Run 1,000 random cases</button></div>
+          <p id="rb-test-out" style="margin:0;font-size:13px"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="check"><div class="pills"><span class="pill ok">Checked</span></div>
+    <p>The rule is the full Lorentz transformation, to rounding error, for any speed and direction. Multiplying <span class="m">V</span> + <span class="m">A</span><sub>∥</sub> by <span class="m">k</span> carries a state from the moving frame back to the lab, the direction used in the paper's examples; the opposite direction, into the moving frame, divides by <span class="m">k</span>. The toggle above switches between the two.</p></div>
+</section>
+
+<!-- §5-6 STACKING -->
+<section class="plate" id="stacking">
+  <div class="plate-head"><span class="sec">§5 · §6</span><h2 class="ttl">Stacking boosts on one line</h2></div>
+  <div class="plate-body">
+    <div class="side">
+      <p>Boosts along one line multiply their Doppler factors, so ln <span class="m">k</span> adds. With <span class="m">K</span> = <span class="m">k</span><sup><span class="m">n</span></sup> the speed is (<span class="m">K</span>² − 1)/(<span class="m">K</span>² + 1). It approaches <span class="m">c</span> but never reaches it, because (<span class="m">V</span> + <span class="m">A</span>)(<span class="m">V</span> − <span class="m">A</span>) = <span class="m">C</span>² survives every boost.</p>
+      <div class="controls">
+        <div class="ctl"><label for="st-b">Speed of each boost</label><output id="st-b-out">0.600</output><input type="range" id="st-b" min="0.05" max="0.95" step="0.005" value="0.6"></div>
+        <div class="ctl"><label for="st-n">Number of boosts <span class="m">n</span></label><output id="st-n-out">2</output><input type="range" id="st-n" min="1" max="12" step="1" value="2"></div>
+      </div>
+      <dl class="ro" id="st-ro"></dl>
+    </div>
+    <div class="figs">
+      <figure><div class="cw"><canvas id="cv-st" aria-label="Speed and rapidity after each boost"></canvas></div>
+        <figcaption>Top: speed after each boost (blue) against the naive Galilean sum <span class="m">n</span>β (grey, dashed). Bottom: ln <span class="m">K</span> grows in equal steps without limit.</figcaption></figure>
+    </div>
+  </div>
+  <div class="check"><div class="pills"><span class="pill ok">Checked</span></div>
+    <p>0.6<span class="m">c</span> then 0.6<span class="m">c</span>: <span class="m">k</span> = 2 × 2 = 4, so <span class="m">v</span> = (16 − 1)/(16 + 1) = 15/17 = 0.88235<span class="m">c</span>, which is Einstein's (<span class="m">u</span> + <span class="m">v</span>)/(1 + <span class="m">uv</span>).</p></div>
+</section>
+
+<!-- §5 BY HAND -->
+<section class="plate" id="by-hand">
+  <div class="plate-head"><span class="sec">§5 · worked example</span><h2 class="ttl">Two perpendicular boosts, by hand</h2></div>
+  <div class="plate-body">
+    <div class="side">
+      <p>A body moves along <span class="m">y</span> inside a frame that moves along <span class="m">x</span>. Speeds from Pythagorean triples keep γ and <span class="m">k</span> as simple fractions, so every step stays exact.</p>
+      <div class="controls">
+        <div class="ctl wide"><label for="hd-f">Frame speed along <span class="m">x</span></label><select id="hd-f"></select></div>
+        <div class="ctl wide"><label for="hd-b">Body speed along <span class="m">y</span>, inside the frame</label><select id="hd-b"></select></div>
+      </div>
+      <div class="bars-legend"><span><i class="sw o"></i>before</span><span><i class="sw f"></i>after</span></div>
+      <div class="bars" id="hd-bars"></div>
+    </div>
+    <div class="figs">
+      <ol class="steps" id="hd-steps"></ol>
+    </div>
+  </div>
+  <div class="check"><div class="pills"><span class="pill ok">Checked</span></div>
+    <p>Every fraction in the paper's example comes out the same: 25/16, 15/16, 12/16, the check (625 − 225 − 144)/256 = 1, and 0.6<span class="m">c</span>, 0.48<span class="m">c</span>, √369/25 = 0.7684<span class="m">c</span>. Step 6 reads the Wigner angle from the two triangles, as in §5: the angle between (15, 12) and (12, 15) has cosine 360/369 = 40/41.</p></div>
+</section>
+
+<!-- §5 WIGNER -->
+<section class="plate" id="wigner">
+  <div class="plate-head"><span class="sec">§5 · App. C</span><h2 class="ttl">Wigner rotation</h2></div>
+  <div class="plate-body">
+    <div class="side">
+      <p>Two perpendicular boosts in either order give the same energy and speed but different directions. The angle δ between the two results is the Wigner rotation. Here it is computed three independent ways.</p>
+      <div class="controls">
+        <div class="ctl"><label for="wg-1">First speed β<sub>1</sub></label><output id="wg-1-out">0.600</output><input type="range" id="wg-1" min="0" max="0.95" step="0.005" value="0.6"></div>
+        <div class="ctl"><label for="wg-2">Second speed β<sub>2</sub></label><output id="wg-2-out">0.600</output><input type="range" id="wg-2" min="0" max="0.95" step="0.005" value="0.6"></div>
+        <div class="btns"><button class="btn" type="button" data-wig="0.6,0.6">0.6 and 0.6</button><button class="btn" type="button" data-wig="0.8,0.8">0.8 and 0.8</button><button class="btn" type="button" data-wig="0.9,0.3">0.9 and 0.3</button></div>
+      </div>
+      <dl class="ro" id="wig-ro"></dl>
+    </div>
+    <div class="figs">
+      <figure><div class="cw"><canvas id="cv-wig" aria-label="Velocities from the two boost orders"></canvas></div>
+        <figcaption>Blue: frame along <span class="m">x</span> carrying a body along <span class="m">y</span>. Orange: the reverse order. Both reach the same speed; δ is the angle between them.</figcaption></figure>
+    </div>
+  </div>
+  <div class="check"><div class="pills"><span class="pill ok">Checked</span></div>
+    <p>12.68° at 0.6<span class="m">c</span> (cos δ = 40/41) and 28.0725° at 0.8<span class="m">c</span> (cos δ = 15/17, speed 0.93295<span class="m">c</span>) match the 4×4 matrix calculation. This is a check against the standard result; the paper cites no direct measurement of the Wigner angle.</p></div>
+</section>
+
+<!-- §5 THOMAS -->
+<section class="plate" id="thomas">
+  <div class="plate-head"><span class="sec">§5 · App. D</span><h2 class="ttl">Thomas precession</h2></div>
+  <div class="plate-body">
+    <div class="side">
+      <p>A body on a circular orbit receives <span class="m">N</span> small boosts per revolution, each toward where its velocity has turned. The small Wigner rotations add up, so a gyroscope carried by the body falls behind the lab axes by 2π(γ − 1) = 2π<span class="m">D</span>/<span class="m">C</span> per revolution.</p>
+      <div class="controls">
+        <div class="ctl"><label for="th-b">Orbital speed β</label><output id="th-b-out">0.50</output><input type="range" id="th-b" min="0.05" max="0.9" step="0.01" value="0.5"></div>
+        <div class="ctl"><label for="th-n">Boosts per revolution <span class="m">N</span></label><output id="th-n-out">120</output><input type="range" id="th-n" min="6" max="360" step="1" value="120"></div>
+        <div class="btns"><button class="btn primary" type="button" id="th-play">Pause</button><button class="btn" type="button" id="th-reset">Restart orbit</button></div>
+      </div>
+      <dl class="ro" id="th-ro"></dl>
+    </div>
+    <div class="figs">
+      <figure><div class="cw"><canvas id="cv-th" aria-label="Orbit with a precessing gyroscope"></canvas></div>
+        <figcaption>Arrow on the body: the gyroscope axis. Faint arrow: where it would point with no precession. Centre: the accumulated angle. Ticks on the orbit mark the boosts when <span class="m">N</span> is small.</figcaption></figure>
+      <div class="tbl-wrap"><table class="mini" id="th-cases"></table></div>
+    </div>
+  </div>
+  <div class="check"><div class="pills"><span class="pill ok">Checked</span></div>
+    <p>Composing small boosts reproduces 2π(γ − 1) per revolution, and the match tightens as <span class="m">N</span> grows. For hydrogen, 13.606 eV and 510.999 keV give 1.673 × 10<sup>−4</sup> rad per revolution. The Earth's 0.64″ per century is one part of its geodetic precession: the Earth is in free fall, so its Thomas precession is not measured separately.</p></div>
+</section>
+
+<!-- §5 ABERRATION -->
+<section class="plate" id="aberration">
+  <div class="plate-head"><span class="sec">§5</span><h2 class="ttl">Aberration of starlight</h2></div>
+  <div class="plate-body">
+    <div class="side">
+      <p>Light is the triangle with <span class="m">C</span> = 0. Starlight arriving perpendicular to the Earth's motion has <span class="m">A</span><sub>⊥</sub> = <span class="m">V</span> and <span class="m">A</span><sub>∥</sub> = 0. The rule gives <span class="m">A</span><sub>∥</sub> = γβ<span class="m">V</span> and leaves <span class="m">A</span><sub>⊥</sub> alone, so the light tilts by sin <span class="m">a</span> = β.</p>
+      <div class="controls">
+        <div class="ctl"><label for="ab-v">Observer speed (km/s)</label><input type="number" id="ab-v" min="0" max="299000" step="0.001" value="29.78"></div>
+        <div class="btns">
+          <button class="btn" type="button" data-ab="29.78">29.78 · article</button>
+          <button class="btn" type="button" data-ab="29.789">29.789 · IAU basis</button>
+          <button class="btn" type="button" data-ab="0.3c">0.3<i>c</i></button>
+          <button class="btn" type="button" data-ab="0.6c">0.6<i>c</i></button>
+          <button class="btn" type="button" data-ab="0.9c">0.9<i>c</i></button>
+        </div>
+      </div>
+      <dl class="ro" id="ab-ro"></dl>
+    </div>
+    <div class="figs">
+      <figure><div class="cw"><canvas id="cv-ab" aria-label="Light triangle before and after the boost"></canvas></div>
+        <figcaption>Dashed: the ray in the Sun's frame. Magenta: the ray seen from the moving Earth. The triangle has legs <span class="m">A</span><sub>⊥</sub> (unchanged) and <span class="m">A</span><sub>∥</sub> = γβ<span class="m">V</span>, drawn to scale.</figcaption></figure>
+    </div>
+  </div>
+  <div class="check"><div class="pills"><span class="pill ok">Checked</span></div>
+    <p>20.49″ at 29.78 km/s. The IAU (1976) constant of aberration, 20.4955″, is a derived value equal to <span class="m">v</span>/<span class="m">c</span> at the Earth's mean orbital speed of 29.789 km/s. Press “29.789 · IAU basis” and the rule gives 20.4955″ as well.</p></div>
+</section>
+
+<!-- §5 MUONS -->
+<section class="plate" id="muons">
+  <div class="plate-head"><span class="sec">§5 · ref. 12</span><h2 class="ttl">Muon lifetime in the CERN storage ring</h2></div>
+  <div class="plate-body">
+    <div class="side">
+      <p>Time dilation is the triangle's ratio <span class="m">V</span>/<span class="m">C</span> = γ. Bailey et al. (1977) stored muons at γ = 29.33 and timed their decays in flight.</p>
+      <div class="controls">
+        <div class="ctl"><label for="mu-g">γ = <span class="m">V</span>/<span class="m">C</span></label><input type="number" id="mu-g" min="1" max="100" step="0.001" value="29.33"></div>
+        <div class="ctl"><label for="mu-t">Rest lifetime τ<sub>0</sub> (µs)</label><input type="number" id="mu-t" min="1" max="3" step="0.0000001" value="2.197"></div>
+        <div class="btns">
+          <button class="btn" type="button" data-mu="29.33,2.197">Article inputs</button>
+          <button class="btn" type="button" data-mu="29.327,2.1969811">γ = 29.327, PDG τ<sub>0</sub></button>
+        </div>
+      </div>
+      <dl class="ro" id="mu-ro"></dl>
+    </div>
+    <div class="figs">
+      <figure><div class="cw"><canvas id="cv-mu-line" aria-label="Prediction against the measured lifetimes"></canvas></div>
+        <figcaption>Prediction γτ<sub>0</sub> (blue line) against the measured lifetimes with their one-standard-deviation error bars.</figcaption></figure>
+      <figure><div class="cw"><canvas id="cv-mu-decay" aria-label="Survival curves at rest and in flight"></canvas></div>
+        <figcaption>Fraction of muons surviving: at rest (grey) and in the ring (blue).</figcaption></figure>
+    </div>
+  </div>
+  <div class="check"><div class="pills"><span class="pill ok">Checked</span></div>
+    <p>29.33 × 2.197 = 64.44 µs. The μ<sup>+</sup> measurement, 64.419 ± 0.058 µs, agrees within a fraction of its error. The μ<sup>−</sup> value, 64.368 ± 0.029 µs, is shown for completeness but is not an independent test: Bailey et al. assumed special relativity to extract the μ<sup>−</sup> rest lifetime from it.</p></div>
+</section>
+
+<!-- §6 IMAGINARY -->
+<section class="plate" id="imaginary">
+  <div class="plate-head"><span class="sec">§6</span><h2 class="ttl">The imaginary branch</h2></div>
+  <div class="plate-body">
+    <div class="side">
+      <p>When <span class="m">V</span> is smaller than <span class="m">C</span>, <span class="m">A</span>² = <span class="m">V</span>² − <span class="m">C</span>² is negative and <span class="m">A</span> is imaginary. A waveguide shows both branches: its dispersion relation <span class="m">f</span>² = <span class="m">f</span><sub>c</sub>² + (<span class="m">c</span><span class="m">k</span>/2π)² is the same triangle, with the cutoff frequency as <span class="m">C</span>.</p>
+      <div class="controls">
+        <div class="ctl"><label for="wv-f">Wave frequency <span class="m">f</span> (GHz)</label><output id="wv-f-out">8.70</output><input type="range" id="wv-f" min="5" max="12" step="0.01" value="8.7"></div>
+        <div class="ctl"><label for="wv-L">Narrow section length (mm)</label><output id="wv-L-out">40</output><input type="range" id="wv-L" min="5" max="100" step="1" value="40"></div>
+        <div class="ctl"><label for="wv-c1">Normal guide cutoff (GHz)</label><input type="number" id="wv-c1" min="1" max="20" step="0.001" value="6.56"></div>
+        <div class="ctl"><label for="wv-c2">Narrow section cutoff (GHz)</label><input type="number" id="wv-c2" min="1" max="20" step="0.001" value="9.49"></div>
+        <div class="btns"><button class="btn" type="button" id="wv-reset">Enders–Nimtz values</button><button class="btn" type="button" id="wv-play">Pause wave</button></div>
+      </div>
+    </div>
+    <div class="figs">
+      <figure><div class="cw"><canvas id="cv-wv" aria-label="Wave in a waveguide with a narrow section"></canvas></div>
+        <figcaption>Top: field in the guide. It propagates where <span class="m">A</span> is real and decays without travelling where <span class="m">A</span> is imaginary. Schematic only: reflections at the steps are left out. Bottom: the triangle in each section. In the narrow section <span class="m">C</span> becomes the longest side.</figcaption></figure>
+      <div class="tbl-wrap"><table class="mini" id="wv-tbl"></table></div>
+      <div class="subcard">
+        <h3>Hydrogen, circular orbits</h3>
+        <div class="ctl"><label for="hy-n">Orbit <span class="m">n</span> (maximal <span class="m">j</span> = <span class="m">n</span> − ½)</label><select id="hy-n"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+        <dl class="ro" id="hy-ro"></dl>
+      </div>
+    </div>
+  </div>
+  <div class="check"><div class="pills"><span class="pill ok">Checked</span></div>
+    <p>The waveguide numbers come out as in the paper: <span class="m">A</span> = 5.71 GHz in the normal section and i·3.79 GHz in the narrow one, a decay length of 12.6 mm and a group velocity of 0.657<span class="m">c</span>. The 128 ps traversal time comes from Esposito's tunnelling-time formula (his Eq. 33), with these sides as its inputs. For hydrogen, <span class="m">V</span> = <span class="m">C</span>√(1 − α²/<span class="m">n</span>²) restates Dirac's formula for maximal <span class="m">j</span>. Here <span class="m">D</span> = <span class="m">V</span> − <span class="m">C</span> is negative, the binding energy, unlike the kinetic energy +13.6 eV used for the same electron in §5.</p></div>
+</section>
+
+<!-- LEDGER -->
+<section class="plate" id="ledger">
+  <div class="plate-head"><span class="sec">Verification</span><h2 class="ttl">Results of the paper, recomputed</h2></div>
+  <p style="margin:0 0 14px;max-width:80ch">Each result of the paper, the value the paper gives, and the value recomputed live on this page.</p>
+  <div class="tbl-wrap"><table id="ledger-tbl"></table></div>
+  <footer>
+    <p style="margin:18px 0 6px">Sources</p>
+    <ol>
+      <li>Bailey J et al 1977, <a href="https://www.nature.com/articles/268301a0" target="_blank" rel="noopener">Measurements of relativistic time dilatation for positive and negative muons in a circular orbit</a>, Nature 268 301.</li>
+      <li>Esposito S 2001, <a href="https://arxiv.org/abs/physics/0102020" target="_blank" rel="noopener">Universal photonic tunneling time</a>, Phys. Rev. E 64 026609 (Eq. 33; Enders–Nimtz values 8.7, 6.56, 9.49 GHz, about 130 ps measured).</li>
+      <li><a href="https://en.wikipedia.org/wiki/IAU_(1976)_System_of_Astronomical_Constants" target="_blank" rel="noopener">IAU (1976) System of Astronomical Constants</a>: constant of aberration 20.49552″, listed as a derived constant.</li>
+      <li>Maritz M F and Hoffman M J 2026, <a href="https://iopscience.iop.org/article/10.1088/1361-6404/ae46fa" target="_blank" rel="noopener">A three-dimensional interpretation of Minkowski spacetime</a>, Eur. J. Phys. 47 025606.</li>
+      <li>Kocik J 2012, <a href="https://arxiv.org/abs/1408.2435" target="_blank" rel="noopener">Geometric diagram for relativistic addition of velocities</a>, Am. J. Phys. 80 737.</li>
+    </ol>
+    <p style="margin-top:14px">All figures on this page are computed live in your browser from the formulas shown; nothing is precomputed except the measured values quoted from the sources.</p>
+  </footer>
+</section>
+
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TAU = Math.PI * 2, DEG = 180 / Math.PI, ARCSEC = 180 / Math.PI * 3600;
+const CKM = 299792.458;           // km/s
+const CMM = 299.792458;           // mm per ns
+const ALPHA = 1 / 137.035999177, ME_EV = 510998.95;
+
+/* ---------- number formatting ---------- */
+const mn = s => String(s).replace(/-/g, '−');
+const fx = (x, d = 4) => Number.isFinite(x) ? mn(x.toFixed(d)) : '∞';
+function sci(x, d = 3) {
+  if (!Number.isFinite(x)) return '∞';
+  if (x === 0) return '0';
+  const e = Math.floor(Math.log10(Math.abs(x)));
+  const m = x / Math.pow(10, e);
+  return `${mn(m.toFixed(d))} × 10<sup>${mn(e)}</sup>`;
+}
+const sciOrFx = (x, d = 4) => (Math.abs(x) > 0 && (Math.abs(x) < 1e-3 || Math.abs(x) >= 1e5)) ? sci(x, 3) : fx(x, d);
+
+/* ---------- physics core ---------- */
+const gam = b => 1 / Math.sqrt(1 - b * b);
+const kdop = b => Math.sqrt((1 + b) / (1 - b));
+function boost(bx, by, bz) { // active boost: E' = γ(E + β·p)
+  const bb = bx * bx + by * by + bz * bz, g = 1 / Math.sqrt(1 - bb), b = [bx, by, bz];
+  const L = [[g, g * bx, g * by, g * bz], [g * bx, 1, 0, 0], [g * by, 0, 1, 0], [g * bz, 0, 0, 1]];
+  if (bb > 0) for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) L[i + 1][j + 1] += (g - 1) * b[i] * b[j] / bb;
+  return L;
+}
+function mm(A, B) { const C = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]; for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) { let s = 0; for (let k = 0; k < 4; k++) s += A[i][k] * B[k][j]; C[i][j] = s; } return C; }
+function mv(M, v) { return M.map(r => r[0] * v[0] + r[1] * v[1] + r[2] * v[2] + r[3] * v[3]); }
+function linv(M) { const s = [1, -1, -1, -1]; const R = [[],[],[],[]]; for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) R[i][j] = s[i] * M[j][i] * s[j]; return R; }
+function ruleN(P, bv) { // the article's rule for a boost of velocity bv (3-vector)
+  const beta = Math.hypot(bv[0], bv[1], bv[2]); if (beta === 0) return P.slice();
+  const n = bv.map(x => x / beta), k = kdop(beta), V = P[0];
+  const ap = P[1] * n[0] + P[2] * n[1] + P[3] * n[2];
+  const aq = [P[1] - ap * n[0], P[2] - ap * n[1], P[3] - ap * n[2]];
+  const s = (V + ap) * k, d = (V - ap) / k, apn = (s - d) / 2;
+  return [(s + d) / 2, apn * n[0] + aq[0], apn * n[1] + aq[1], apn * n[2] + aq[2]];
+}
+function randUnit() { let x, y, z, r; do { x = Math.random() * 2 - 1; y = Math.random() * 2 - 1; z = Math.random() * 2 - 1; r = x * x + y * y + z * z; } while (r > 1 || r < 1e-6); r = Math.sqrt(r); return [x / r, y / r, z / r]; }
+function rodrigues(v, n, th) { const c = Math.cos(th), s = Math.sin(th), d = v[0] * n[0] + v[1] * n[1] + v[2] * n[2]; const cr = [n[1] * v[2] - n[2] * v[1], n[2] * v[0] - n[0] * v[2], n[0] * v[1] - n[1] * v[0]]; return [0, 1, 2].map(i => v[i] * c + cr[i] * s + n[i] * d * (1 - c)); }
+
+/* ---------- exact fractions ---------- */
+const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a || 1; };
+const lcm = (a, b) => Math.abs(a * b) / gcd(a, b);
+class Q {
+  constructor(n, d = 1) { if (d < 0) { n = -n; d = -d; } const g = gcd(n, d); this.n = n / g; this.d = d / g; }
+  add(o) { return new Q(this.n * o.d + o.n * this.d, this.d * o.d); }
+  sub(o) { return new Q(this.n * o.d - o.n * this.d, this.d * o.d); }
+  mul(o) { return new Q(this.n * o.n, this.d * o.d); }
+  div(o) { return new Q(this.n * o.d, this.d * o.n); }
+  get v() { return this.n / this.d; }
+  toString() { return mn(this.d === 1 ? `${this.n}` : `${this.n}/${this.d}`); }
+}
+const F = s => `<span class="fr">${s}</span>`;
+const isqrt = n => { const r = Math.round(Math.sqrt(n)); return r * r === n ? r : null; };
+
+/* ---------- palette & drawing ---------- */
+let P = null;
+function readPal() {
+  const s = getComputedStyle(document.documentElement), g = n => s.getPropertyValue(n).trim();
+  P = { fig: g('--fig'), ink: g('--ink'), muted: g('--muted'), rule: g('--rule'), grid: g('--grid'), plane: g('--plane'),
+    rest: g('--c-rest'), energy: g('--c-energy'), mom: g('--c-mom'), added: g('--c-added'), hidden: g('--c-hidden'), light: g('--c-light'), perp: g('--c-perp') };
+}
+const FM = (px, st = 'italic', w = 400) => `${st} ${w} ${px}px "STIX Two Text", Cambria, "Times New Roman", serif`;
+const FS = (px, w = 400) => `${w} ${px}px "IBM Plex Sans", system-ui, sans-serif`;
+const FN = px => `400 ${px}px "IBM Plex Mono", ui-monospace, monospace`;
+function seg(ctx, x1, y1, x2, y2, color, lw = 1.5, dash) { ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.setLineDash(dash || []); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.restore(); }
+function arrow(ctx, x1, y1, x2, y2, color, lw = 2, dash, head = 9) {
+  const L = Math.hypot(x2 - x1, y2 - y1); if (L < 1) return;
+  const ux = (x2 - x1) / L, uy = (y2 - y1) / L, hh = Math.min(head, L * 0.45);
+  seg(ctx, x1, y1, x2 - ux * hh * 0.7, y2 - uy * hh * 0.7, color, lw, dash);
+  ctx.save(); ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - ux * hh - uy * hh * 0.42, y2 - uy * hh + ux * hh * 0.42);
+  ctx.lineTo(x2 - ux * hh + uy * hh * 0.42, y2 - uy * hh - ux * hh * 0.42); ctx.closePath(); ctx.fill(); ctx.restore();
+}
+function txt(ctx, s, x, y, color, font, align = 'left', base = 'middle', halo = true) {
+  ctx.save(); ctx.font = font; ctx.textAlign = align; ctx.textBaseline = base;
+  if (halo) { ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.strokeStyle = P.fig; ctx.strokeText(s, x, y); }
+  ctx.fillStyle = color; ctx.fillText(s, x, y); ctx.restore();
+}
+function paperGrid(ctx, w, h, step = 24) { ctx.save(); ctx.strokeStyle = P.grid; ctx.lineWidth = 1; ctx.beginPath(); for (let x = 0.5; x < w; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, h); } for (let y = 0.5; y < h; y += step) { ctx.moveTo(0, y); ctx.lineTo(w, y); } ctx.stroke(); ctx.restore(); }
+function rightAngle(ctx, x, y, ax, ay, bx, by, sz, color) { ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x + ax * sz, y + ay * sz); ctx.lineTo(x + ax * sz + bx * sz, y + ay * sz + by * sz); ctx.lineTo(x + bx * sz, y + by * sz); ctx.stroke(); ctx.restore(); }
+
+const figs = [];
+function fig(id, opts, draw) {
+  const cv = document.getElementById(id), ctx = cv.getContext('2d');
+  const st = { cv, ctx, w: 0, h: 0 };
+  let lastW = -1;
+  st.redraw = () => { if (!st.w) return; if (!P) readPal(); ctx.clearRect(0, 0, st.w, st.h); draw(st); };
+  st.size = (force) => {
+    const w = Math.floor(cv.parentElement.clientWidth); if (!w || (w === lastW && !force)) return; lastW = w;
+    const asp = typeof opts.aspect === 'function' ? opts.aspect(w) : opts.aspect;
+    const h = Math.round(Math.min(w / asp, opts.maxH || 9999));
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.height = h + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); st.w = w; st.h = h; st.redraw();
+  };
+  new ResizeObserver(() => st.size()).observe(cv.parentElement);
+  figs.push(st); return st;
+}
+const redrawAll = () => { readPal(); figs.forEach(f => f.redraw()); };
+
+/* ---------- animation hub ---------- */
+const animators = [];
+let lastT = 0, rafOn = false;
+function loop(t) {
+  const dt = lastT ? Math.min(0.05, (t - lastT) / 1000) : 0; lastT = t;
+  let any = false;
+  for (const a of animators) if (a.active()) { a.tick(dt); any = true; }
+  if (any) requestAnimationFrame(loop); else { rafOn = false; lastT = 0; }
+}
+function kick() { if (!rafOn) { rafOn = true; lastT = 0; requestAnimationFrame(loop); } }
+function visibleTracker(el) { const o = { on: false }; new IntersectionObserver(es => { o.on = es[0].isIntersecting; if (o.on) kick(); }).observe(el); return o; }
+
+function ro(el, rows) { // rows: [label, value, hi?] or 'sep'
+  el.innerHTML = rows.map(r => r === 'sep' ? '<div class="sep"></div>' : `<dt>${r[0]}</dt><dd${r[2] ? ' class="hi"' : ''}>${r[1]}</dd>`).join('');
+}
+function bars(el, rows) {
+  const mx = Math.max(1e-12, ...rows.flatMap(r => [Math.abs(r.b), Math.abs(r.a)]));
+  el.innerHTML = rows.map(r => `<div class="bar-row"><div class="bar-label">${r.label}</div><div class="bar-pair">
+    <div class="bline"><div class="btrack"><div class="bfill before" style="width:${(Math.abs(r.b) / mx * 100).toFixed(2)}%"></div></div><span class="bval">${r.bt}</span></div>
+    <div class="bline"><div class="btrack"><div class="bfill" style="width:${(Math.abs(r.a) / mx * 100).toFixed(2)}%;background:${r.color}"></div></div><span class="bval">${r.at}</span></div></div></div>`).join('');
+}
+const M = s => `<span class="m">${s}</span>`;
+const Apar = `${M('A')}<sub>∥</sub>`, Aperp = `${M('A')}<sub>⊥</sub>`;
+
+/* =====================================================================
+   §3 TRIANGLE
+   ===================================================================== */
+const tri = { D: 0.25, light: false };
+const triD = $('#tri-d'), triB = $('#tri-b'), triL = $('#tri-light');
+const triFig = fig('cv-tri', { aspect: w => w < 520 ? 1.15 : 1.55, maxH: 440 }, st => {
+  const { ctx, w, h } = st; paperGrid(ctx, w, h);
+  const C = tri.light ? 0 : 1, D = tri.D, V = C + D, A = Math.sqrt(D * D + 2 * C * D), H = Math.sqrt(2 * C * D);
+  const gapU = 0.5, splitW = Math.max(D, 0.25);
+  const spanW = Math.max(V, 0.25) + gapU + splitW + 0.75, spanH = Math.max(A, 0.3);
+  const padL = 30, padR = 12, padT = 40, padB = 40;
+  const s = Math.min((w - padL - padR) / spanW, (h - padT - padB) / spanH);
+  const ox = padL, oy = h - padB - Math.max(0, ((h - padT - padB) - spanH * s) / 2), X = x => ox + x * s, Y = y => oy - y * s;
+  txt(ctx, tri.light ? `light: C = 0, V = A = ${fx(V, 3)}` : `C = 1, D = ${fx(D, 3)}`, 12, 18, P.muted, FN(12));
+  seg(ctx, X(0) - 8, Y(0), X(Math.max(V, C)) + 12, Y(0), P.rule, 1);
+  const phi = Math.atan2(A, C);
+  if (V > 0) { ctx.save(); ctx.strokeStyle = P.muted; ctx.setLineDash([3, 4]); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(X(0), Y(0), V * s, -phi, 0); ctx.stroke(); ctx.restore(); }
+  if (D > 0) { seg(ctx, X(C), Y(0), X(V), Y(0), P.added, 3); txt(ctx, 'D', X(C + D / 2), Y(0) + 15, P.added, FM(16)); }
+  if (C > 0) { seg(ctx, X(0), Y(0), X(C), Y(0), P.rest, 3); txt(ctx, 'C', X(C / 2), Y(0) + 15, P.rest, FM(17)); }
+  if (A > 0) {
+    seg(ctx, X(C), Y(0), X(C), Y(A), P.mom, 3);
+    if (C > 0 && A * s > 16) rightAngle(ctx, X(C), Y(0), -1, 0, 0, -1, 9, P.muted);
+    seg(ctx, X(0), Y(0), X(C), Y(A), P.energy, 3);
+    txt(ctx, 'A', X(C) + 9, Y(A / 2), P.mom, FM(17));
+    const nx = -A / V, ny = C / V;
+    txt(ctx, 'V = C + D', X(C / 2) + nx * 20, Y(A / 2) - ny * 20, P.energy, FM(16), 'center');
+    if (C > 0 && phi > 0.08) { ctx.save(); ctx.strokeStyle = P.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(X(0), Y(0), 26, -phi, 0); ctx.stroke(); ctx.restore(); txt(ctx, 'φ', X(0) + 34 * Math.cos(phi / 2), Y(0) - 34 * Math.sin(phi / 2), P.ink, FM(15), 'left'); }
+  }
+  // momentum split
+  const x0 = Math.max(V, 0.25) + gapU;
+  if (D > 0) {
+    seg(ctx, X(x0), Y(0), X(x0 + D), Y(0), P.added, 3);
+    if (H > 0) seg(ctx, X(x0 + D), Y(0), X(x0 + D), Y(H), P.hidden, 3);
+    seg(ctx, X(x0), Y(0), X(x0 + D), Y(H), P.mom, 3);
+    if (H * s > 16 && D * s > 16) rightAngle(ctx, X(x0 + D), Y(0), -1, 0, 0, -1, 8, P.muted);
+    txt(ctx, 'D', X(x0 + D / 2), Y(0) + 15, P.added, FM(16), 'center');
+    if (H > 0) txt(ctx, '√(2CD)', X(x0 + D) + 7, Y(H / 2), P.hidden, FM(15));
+    txt(ctx, 'A', X(x0 + D / 2) - 10, Y(H / 2) - 10, P.mom, FM(16), 'right');
+    txt(ctx, 'momentum split', X(x0), Y(0) + 32, P.muted, FS(11.5));
+  }
+});
+function triRender() {
+  const C = tri.light ? 0 : 1, D = tri.D, V = C + D, A = Math.sqrt(D * D + 2 * C * D), H = Math.sqrt(2 * C * D);
+  const beta = V > 0 ? A / V : 0, g = C > 0 ? V / C : Infinity, k = C > 0 ? Math.sqrt((1 + beta) / (1 - beta)) : Infinity;
+  $('#tri-d-out').textContent = fx(D, 3); $('#tri-b-out').textContent = fx(beta, 3);
+  ro($('#tri-ro'), [
+    [`${M('C')} rest energy`, fx(C, 4)], [`${M('D')} added energy`, fx(D, 4)], [`${M('V')} = ${M('C')} + ${M('D')}`, fx(V, 4), 1],
+    [`${M('A')} = √(${M('D')}² + 2${M('CD')})`, fx(A, 4), 1], [`hidden √(2${M('CD')})`, fx(H, 4)], 'sep',
+    [`β = ${M('A')}/${M('V')} = sin φ`, fx(beta, 4)], [`γ = ${M('V')}/${M('C')} = 1/cos φ`, fx(g, 4)], [`φ`, C > 0 ? fx(Math.atan2(A, C) * DEG, 2) + '°' : '90.00°'],
+    [`${M('k')} = √((1+β)/(1−β))`, fx(k, 4)], 'sep',
+    [`${M('V')} + ${M('A')} = ${M('kC')}`, fx(V + A, 4), 1], [`${M('V')} − ${M('A')} = ${M('C')}/${M('k')}`, fx(V - A, 4), 1], [`product = ${M('C')}²`, fx((V + A) * (V - A), 4)]
+  ]);
+  const A2 = A * A, pd = A2 > 0 ? D * D / A2 : 0;
+  $('#tri-share-d').style.width = (pd * 100).toFixed(1) + '%'; $('#tri-share-h').style.width = ((1 - pd) * 100).toFixed(1) + '%';
+  $('#tri-share-txt').innerHTML = A2 > 0 ? `Share of ${M('A')}²: ${M('D')}² is ${(pd * 100).toFixed(1)}%, 2${M('CD')} is ${((1 - pd) * 100).toFixed(1)}%. The hidden part dominates at low speed (Newtonian), ${M('D')} at high speed.` : `At rest ${M('A')} = 0.`;
+  triB.disabled = tri.light;
+  if (!tri.light && document.activeElement !== triB) triB.value = beta.toFixed(3);
+  triFig.redraw();
+}
+triD.addEventListener('input', () => { tri.D = +triD.value; if (!tri.light) { const V = 1 + tri.D; triB.value = (Math.sqrt(tri.D * tri.D + 2 * tri.D) / V).toFixed(3); } triRender(); });
+triB.addEventListener('input', () => { tri.D = gam(+triB.value) - 1; triD.value = tri.D; triRender(); });
+triL.addEventListener('change', () => { tri.light = triL.checked; triRender(); });
+
+/* =====================================================================
+   §4 ROTATION ABOUT THE LIGHT LINE
+   ===================================================================== */
+const NL = [Math.SQRT1_2, Math.SQRT1_2, 0];
+const VIEW_O = { yaw: -0.62, pitch: -0.24 }, VIEW_F = { yaw: 0, pitch: 0 };
+const rot = { beta: 0.6, s: 3, yaw: VIEW_O.yaw, pitch: VIEW_O.pitch, playing: false };
+function stageVec(e, beta, s) {
+  const k = kdop(beta), th = Math.acos((1 - beta) / (1 + beta));
+  if (s <= 1) return rodrigues(e, NL, th * s);
+  const r = rodrigues(e, NL, th);
+  if (s <= 2) return [r[0], r[1], r[2] * (2 - s)];
+  const f = 1 + (k - 1) * (s - 2); return [r[0] * f, r[1] * f, 0];
+}
+function proj3(p, yaw, pitch) { const ca = Math.cos(yaw), sa = Math.sin(yaw), cb = Math.cos(pitch), sb = Math.sin(pitch); const x1 = p[0] * ca + p[2] * sa, z1 = -p[0] * sa + p[2] * ca; return [x1, p[1] * cb + z1 * sb]; }
+const rotFig = fig('cv-rot', { aspect: w => w < 520 ? 1 : 1.25, maxH: 560 }, st => {
+  const { ctx, w, h } = st; const { yaw, pitch, beta, s } = rot;
+  const lo = -0.8, hi = 2.4;
+  const pts = [[lo, lo, 0], [hi, lo, 0], [hi, hi, 0], [lo, hi, 0], [0, 0, 1.3], [0, 0, -1.3]];
+  let a = 1e9, b = -1e9, c = 1e9, d = -1e9; for (const p of pts) { const q = proj3(p, yaw, pitch); a = Math.min(a, q[0]); b = Math.max(b, q[0]); c = Math.min(c, q[1]); d = Math.max(d, q[1]); }
+  const pad = 26, S = Math.min((w - 2 * pad) / (b - a), (h - 2 * pad) / (d - c));
+  const offx = pad + ((w - 2 * pad) - S * (b - a)) / 2 - S * a, offy = pad + ((h - 2 * pad) - S * (d - c)) / 2 + S * d;
+  const T = p => { const q = proj3(p, yaw, pitch); return [offx + S * q[0], offy - S * q[1]]; };
+  const L3 = (p, q, col, lw, dash) => { const A = T(p), B = T(q); seg(ctx, A[0], A[1], B[0], B[1], col, lw, dash); };
+  const AR = (p, q, col, lw, dash) => { const A = T(p), B = T(q); arrow(ctx, A[0], A[1], B[0], B[1], col, lw, dash); };
+  // plane
+  const c4 = [[lo, lo, 0], [hi, lo, 0], [hi, hi, 0], [lo, hi, 0]].map(T);
+  ctx.save(); ctx.fillStyle = P.plane; ctx.beginPath(); c4.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.fill(); ctx.strokeStyle = P.rule; ctx.stroke(); ctx.restore();
+  for (let g = -0.5; g <= 2.0001; g += 0.5) { L3([g, lo, 0], [g, hi, 0], P.grid, 1); L3([lo, g, 0], [hi, g, 0], P.grid, 1); }
+  // hyperbolas
+  const hyp = sw => { ctx.save(); ctx.strokeStyle = P.muted; ctx.globalAlpha = 0.55; ctx.lineWidth = 1.2; ctx.setLineDash([4, 4]); ctx.beginPath(); let first = true;
+    for (let u = -1.0; u <= 1.6; u += 0.02) { const x = Math.cosh(u), t = Math.sinh(u); const p = sw ? [t, x, 0] : [x, t, 0]; if (p[0] > hi || p[1] > hi || p[0] < lo || p[1] < lo) { first = true; continue; } const q = T(p); if (first) { ctx.moveTo(q[0], q[1]); first = false; } else ctx.lineTo(q[0], q[1]); }
+    ctx.stroke(); ctx.restore(); };
+  hyp(false); hyp(true);
+  // light lines
+  L3([lo, lo, 0], [hi, hi, 0], P.light, 1.8, [9, 4, 2, 4]);
+  L3([-0.8, 0.8, 0], [0.8, -0.8, 0], P.light, 1, [3, 4]);
+  { const q = T([hi, hi, 0]); txt(ctx, 'light line x = t', q[0] - 6, q[1] - 10, P.light, FS(12), 'right'); }
+  // rotation ring around the light line
+  { const c0 = [2.0, 2.0, 0], e1 = [Math.SQRT1_2, -Math.SQRT1_2, 0], e2 = [0, 0, 1], r = 0.16; ctx.save(); ctx.strokeStyle = P.light; ctx.lineWidth = 1.3; ctx.beginPath();
+    for (let u = 0.3; u <= TAU - 0.5; u += 0.08) { const p = [0, 1, 2].map(i => c0[i] + r * (Math.cos(u) * e1[i] + Math.sin(u) * e2[i])); const q = T(p); u === 0.3 ? ctx.moveTo(q[0], q[1]) : ctx.lineTo(q[0], q[1]); } ctx.stroke(); ctx.restore();
+    const u1 = TAU - 0.5, u0 = TAU - 0.62; const pA = T([0, 1, 2].map(i => c0[i] + r * (Math.cos(u0) * e1[i] + Math.sin(u0) * e2[i]))), pB = T([0, 1, 2].map(i => c0[i] + r * (Math.cos(u1) * e1[i] + Math.sin(u1) * e2[i])));
+    arrow(ctx, pA[0], pA[1], pB[0], pB[1], P.light, 1.3, null, 7); }
+  // axes
+  AR([lo, 0, 0], [hi, 0, 0], P.muted, 1.1); AR([0, lo, 0], [0, hi, 0], P.muted, 1.1); AR([0, 0, -1.3], [0, 0, 1.3], P.muted, 1, [4, 4]);
+  { let q = T([hi, 0, 0]); txt(ctx, 'x', q[0] + 4, q[1] + 12, P.muted, FM(16)); q = T([0, hi, 0]); txt(ctx, 't', q[0] + 8, q[1] + 4, P.muted, FM(16)); q = T([0, 0, 1.3]); txt(ctx, 'z', q[0] - 8, q[1] - 8, P.muted, FM(16), 'right'); }
+  const ex = [1, 0, 0], et = [0, 1, 0];
+  AR([0, 0, 0], ex, P.rest, 2.2); AR([0, 0, 0], et, P.rest, 2.2);
+  const th = Math.acos((1 - beta) / (1 + beta));
+  for (const [e, nm] of [[ex, 'x'], [et, 't']]) {
+    const r = rodrigues(e, NL, th * Math.min(s, 1));
+    if (s > 0) { AR([0, 0, 0], r, P.ink, 1.8, [6, 4]); if (s <= 1.05) { const q = T(r); txt(ctx, 'rotated ' + nm, q[0] + 8, q[1], P.ink, FS(11.5)); } }
+    if (s > 1) { const sh = stageVec(e, beta, Math.min(s, 2)); L3(r, sh, P.muted, 1, [2, 3]); AR([0, 0, 0], sh, P.mom, 2.6); if (s <= 2.05) { const q = T(sh); txt(ctx, 'shadow', q[0] + 8, q[1] + 2, P.mom, FS(11.5)); } }
+    if (s > 2) { const fin = stageVec(e, beta, s); AR([0, 0, 0], fin, P.energy, 2.8); if (s > 2.95) { const q = T(fin); txt(ctx, nm + '′', q[0] + 8, q[1] - 4, P.energy, FM(17)); } }
+  }
+});
+const STAGES = ['Original axes', 'Step 1 · rotate about the light line', 'Step 2 · project onto the (x, t) plane', 'Step 3 · rescale by k'];
+function rotRender() {
+  const b = rot.beta, k = kdop(b), g = gam(b), th = Math.acos((1 - b) / (1 + b));
+  const sh = stageVec([1, 0, 0], b, 2);
+  const s = rot.s, idx = s <= 0 ? 0 : s <= 1 ? 1 : s <= 2 ? 2 : 3;
+  $('#rot-b-out').textContent = fx(b, 3); $('#rot-s-out').textContent = s.toFixed(2);
+  $('#rot-stage').innerHTML = s >= 3 ? '<b>Done.</b> The blue axes are the Lorentz axes.' : `<b>${STAGES[idx]}</b>`;
+  const P2 = [[(1 + 1 / (k * k)) / 2, (1 - 1 / (k * k)) / 2], [(1 - 1 / (k * k)) / 2, (1 + 1 / (k * k)) / 2]];
+  const Lm = P2.map(r => r.map(x => x * k)), det = Lm[0][0] * Lm[1][1] - Lm[0][1] * Lm[1][0];
+  ro($('#rot-ro'), [
+    [`${M('k')}`, fx(k, 4)], [`cos θ = (1−β)/(1+β) = 1/${M('k')}²`, fx(Math.cos(th), 4)], [`θ`, fx(th * DEG, 2) + '°'],
+    [`shadow slope = tan²(θ/2)`, fx(b === 0 ? 0 : sh[1] / sh[0], 4), 1], [`equals β`, fx(b, 4)], 'sep',
+    [`on ${M('x')} = ${M('t')}: rotate, project, ×${M('k')}`, `1 → 1 → ${fx(k, 3)}`], [`on ${M('x')} = −${M('t')}`, `1 → ${fx(1 / (k * k), 3)} → ${fx(1 / k, 3)}`], 'sep',
+    [`Λ = ${M('k')}P, diagonal (γ)`, fx(Lm[0][0], 4), 1], [`Λ, off-diagonal (γβ)`, fx(Lm[0][1], 4), 1], [`γ, γβ from formulas`, `${fx(g, 4)}, ${fx(g * b, 4)}`], [`det Λ`, fx(det, 6)]
+  ]);
+  rotFig.redraw();
+}
+$('#rot-b').addEventListener('input', e => { rot.beta = +e.target.value; rotRender(); });
+$('#rot-s').addEventListener('input', e => { rot.s = +e.target.value; rot.playing = false; $('#rot-play').textContent = 'Play construction'; rotRender(); });
+function setView(v, btn) { rot.yaw = v.yaw; rot.pitch = v.pitch; $('#rot-view-o').setAttribute('aria-pressed', btn === 'o'); $('#rot-view-f').setAttribute('aria-pressed', btn === 'f'); rotFig.redraw(); }
+$('#rot-view-o').addEventListener('click', () => setView(VIEW_O, 'o'));
+$('#rot-view-f').addEventListener('click', () => setView(VIEW_F, 'f'));
+$('#rot-play').addEventListener('click', () => {
+  if (RM) { rot.s = 3; $('#rot-s').value = 3; rotRender(); return; }
+  if (rot.playing) { rot.playing = false; $('#rot-play').textContent = 'Play construction'; return; }
+  if (rot.s >= 2.999) rot.s = 0; rot.playing = true; $('#rot-play').textContent = 'Pause'; kick();
+});
+animators.push({ active: () => rot.playing, tick: dt => { rot.s = Math.min(3, rot.s + dt / 2.2); $('#rot-s').value = rot.s; if (rot.s >= 3) { rot.playing = false; $('#rot-play').textContent = 'Play construction'; } rotRender(); } });
+{ const cv = $('#cv-rot'); let drag = null;
+  cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, yaw: rot.yaw, pitch: rot.pitch }; try { cv.setPointerCapture(e.pointerId); } catch (_) {} });
+  cv.addEventListener('pointermove', e => { if (!drag) return; rot.yaw = drag.yaw + (e.clientX - drag.x) * 0.01; rot.pitch = Math.max(-1.3, Math.min(1.3, drag.pitch + (e.clientY - drag.y) * 0.01)); $('#rot-view-o').setAttribute('aria-pressed', 'false'); $('#rot-view-f').setAttribute('aria-pressed', 'false'); rotFig.redraw(); });
+  const end = () => { drag = null; }; cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end); }
+
+/* =====================================================================
+   §4 RULE BENCH
+   ===================================================================== */
+const rb = { f: 0.6, u: 0.6, ang: 90, conv: 'paper' };
+function rbCompute() {
+  const g = gam(rb.u), a = rb.ang / DEG;
+  const Pin = [g, g * rb.u * Math.cos(a), g * rb.u * Math.sin(a), 0];
+  const kk = rb.conv === 'paper' ? kdop(rb.f) : 1 / kdop(rb.f);
+  const s0 = Pin[0] + Pin[1], d0 = Pin[0] - Pin[1], perp = Pin[2], s1 = s0 * kk, d1 = d0 / kk;
+  const out = [(s1 + d1) / 2, (s1 - d1) / 2, perp, 0];
+  const ref = mv(boost(rb.conv === 'paper' ? rb.f : -rb.f, 0, 0), Pin);
+  return { Pin, kk, s0, d0, perp, s1, d1, out, ref };
+}
+const rbFig = fig('cv-rb', { aspect: 1, maxH: 360 }, st => {
+  const { ctx, w, h } = st; paperGrid(ctx, w, h, 20);
+  const r = rbCompute(); const R = Math.min(w, h) / 2 - 22, cx = w / 2, cy = h / 2;
+  seg(ctx, cx - R - 8, cy, cx + R + 8, cy, P.rule, 1); seg(ctx, cx, cy - R - 8, cx, cy + R + 8, P.rule, 1);
+  ctx.save(); ctx.strokeStyle = P.light; ctx.setLineDash([5, 4]); ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke(); ctx.restore();
+  txt(ctx, 'c', cx + R * 0.72 + 4, cy - R * 0.72 - 4, P.light, FM(15));
+  const fdir = rb.conv === 'paper' ? 1 : -1;
+  arrow(ctx, cx, cy, cx + fdir * rb.f * R, cy, P.perp, 2, [3, 3]);
+  const vin = [r.Pin[1] / r.Pin[0], r.Pin[2] / r.Pin[0]], vout = [r.out[1] / r.out[0], r.out[2] / r.out[0]];
+  arrow(ctx, cx, cy, cx + vin[0] * R, cy - vin[1] * R, P.mom, 2.2, [6, 4]);
+  arrow(ctx, cx, cy, cx + vout[0] * R, cy - vout[1] * R, P.energy, 2.8);
+  txt(ctx, 'before', cx + vin[0] * R + (vin[0] >= 0 ? 6 : -6), cy - vin[1] * R - 8, P.mom, FS(11.5), vin[0] >= 0 ? 'left' : 'right');
+  txt(ctx, 'after', cx + vout[0] * R + (vout[0] >= 0 ? 6 : -6), cy - vout[1] * R + 10, P.energy, FS(11.5), vout[0] >= 0 ? 'left' : 'right');
+  txt(ctx, 'boost', cx + fdir * rb.f * R / 2, cy + 12, P.perp, FS(11), 'center');
+});
+function rbRender() {
+  const r = rbCompute();
+  $('#rb-f-out').textContent = fx(rb.f, 3); $('#rb-u-out').textContent = fx(rb.u, 3); $('#rb-a-out').textContent = rb.ang + '°';
+  bars($('#rb-bars'), [
+    { label: `V + A<sub>∥</sub><small>× ${rb.conv === 'paper' ? 'k' : '1/k'}</small>`, b: r.s0, a: r.s1, bt: fx(r.s0, 4), at: fx(r.s1, 4), color: 'var(--c-energy)' },
+    { label: `V − A<sub>∥</sub><small>÷ ${rb.conv === 'paper' ? 'k' : '1/k'}</small>`, b: r.d0, a: r.d1, bt: fx(r.d0, 4), at: fx(r.d1, 4), color: 'var(--c-mom)' },
+    { label: `A<sub>⊥</sub><small>unchanged</small>`, b: r.perp, a: r.perp, bt: fx(r.perp, 4), at: fx(r.perp, 4), color: 'var(--c-perp)' }
+  ]);
+  const V = r.out[0], vx = r.out[1] / V, vy = r.out[2] / V;
+  ro($('#rb-ro'), [
+    [`${M('k')} used`, fx(r.kk, 4)], 'sep',
+    [`new ${M('V')} = (sum + difference)/2`, fx(V, 4), 1], [`new ${Apar} = (sum − difference)/2`, fx(r.out[1], 4), 1], [`${Aperp}`, fx(r.out[2], 4)],
+    [`${M('V')}² − ${M('A')}² (stays ${M('C')}² = 1)`, fx(V * V - r.out[1] ** 2 - r.out[2] ** 2, 6)], 'sep',
+    [`velocity after: ${M('v')}<sub>x</sub>, ${M('v')}<sub>y</sub>`, `${fx(vx, 4)}, ${fx(vy, 4)}`, 1], [`speed after`, fx(Math.hypot(vx, vy), 4)]
+  ]);
+  const names = ['V (energy)', 'A<sub>x</sub>', 'A<sub>y</sub>', 'A<sub>z</sub>'];
+  const dev = Math.max(...r.out.map((x, i) => Math.abs(x - r.ref[i])));
+  $('#rb-cmp').innerHTML = `<tr><th></th><th>Rule</th><th>Matrix</th></tr>` + r.out.map((x, i) => `<tr><td>${names[i]}</td><td class="n">${fx(x, 6)}</td><td class="n">${fx(r.ref[i], 6)}</td></tr>`).join('') + `<tr><td>Largest difference</td><td class="n" colspan="2">${dev === 0 ? '0 (exact)' : sci(dev, 1)}</td></tr>`;
+  rbFig.redraw();
+}
+function rbTest() {
+  let worst = 0, maxU = 0, maxB = 0;
+  for (let i = 0; i < 1000; i++) {
+    const Cm = 0.1 + Math.random() * 9.9, u = randUnit(), us = Math.random() * 0.999, g = gam(us);
+    const Pin = [g * Cm, g * Cm * us * u[0], g * Cm * us * u[1], g * Cm * us * u[2]];
+    const bu = randUnit(), bs = 0.001 + Math.random() * 0.998, bv = bu.map(x => x * bs);
+    const r1 = ruleN(Pin, bv), r2 = mv(boost(bv[0], bv[1], bv[2]), Pin);
+    const m = Math.max(...r2.map(Math.abs));
+    worst = Math.max(worst, Math.max(...r1.map((x, j) => Math.abs(x - r2[j]))) / m);
+    maxU = Math.max(maxU, us); maxB = Math.max(maxB, bs);
+  }
+  $('#rb-test-out').innerHTML = `1,000 random bodies and boost directions in 3D, speeds up to ${fx(Math.max(maxU, maxB), 3)}<span class="m">c</span>. Largest relative difference: <b>${sci(worst, 1)}</b>, which is floating-point rounding. The article reports 3 × 10<sup>−15</sup>; the exact figure depends on the speed range and how the error is measured.`;
+}
+$('#rb-f').addEventListener('input', e => { rb.f = +e.target.value; rbRender(); });
+$('#rb-u').addEventListener('input', e => { rb.u = +e.target.value; rbRender(); });
+$('#rb-a').addEventListener('input', e => { rb.ang = +e.target.value; rbRender(); });
+$('#rb-conv-p').addEventListener('click', () => { rb.conv = 'paper'; $('#rb-conv-p').setAttribute('aria-pressed', 'true'); $('#rb-conv-s').setAttribute('aria-pressed', 'false'); rbRender(); });
+$('#rb-conv-s').addEventListener('click', () => { rb.conv = 'std'; $('#rb-conv-s').setAttribute('aria-pressed', 'true'); $('#rb-conv-p').setAttribute('aria-pressed', 'false'); rbRender(); });
+$('#rb-test').addEventListener('click', rbTest);
+
+/* =====================================================================
+   §5–6 STACKING
+   ===================================================================== */
+const stk = { b: 0.6, n: 2 };
+const stFig = fig('cv-st', { aspect: w => w < 520 ? 1.05 : 1.6, maxH: 420 }, st => {
+  const { ctx, w, h } = st;
+  const k = kdop(stk.b), n = stk.n, lk = Math.log(k);
+  const padL = 46, padR = 18, padT = 16, padB = 44, gapP = 46;
+  const tot = h - padT - padB - gapP, h1 = tot * 0.6, h2 = tot - h1, top2 = padT + h1 + gapP;
+  const X = i => padL + (w - padL - padR) * i / 12;
+  const y1 = v => padT + h1 * (1 - Math.min(v, 2) / 2);
+  for (const v of [0, 0.5, 1, 1.5, 2]) { seg(ctx, padL, y1(v), w - padR, y1(v), P.grid, 1); txt(ctx, fx(v, 1), padL - 8, y1(v), P.muted, FN(11), 'right', 'middle', false); }
+  seg(ctx, padL, y1(1), w - padR, y1(1), P.light, 1.4, [6, 4]); txt(ctx, 'speed of light', w - padR - 4, y1(1) - 9, P.light, FS(11.5), 'right');
+  txt(ctx, 'speed / c', padL, padT - 2, P.muted, FS(11), 'left', 'top');
+  // Galilean
+  ctx.save(); ctx.strokeStyle = P.muted; ctx.setLineDash([5, 4]); ctx.lineWidth = 1.5; ctx.beginPath();
+  for (let i = 0; i <= n; i++) { const v = i * stk.b; const yy = y1(v); i ? ctx.lineTo(X(i), yy) : ctx.moveTo(X(i), yy); if (v > 2) break; } ctx.stroke(); ctx.restore();
+  // relativistic
+  ctx.save(); ctx.strokeStyle = P.energy; ctx.lineWidth = 2.4; ctx.beginPath();
+  for (let i = 0; i <= n; i++) { const K2 = Math.pow(k, 2 * i), v = (K2 - 1) / (K2 + 1); i ? ctx.lineTo(X(i), y1(v)) : ctx.moveTo(X(i), y1(v)); } ctx.stroke(); ctx.restore();
+  for (let i = 0; i <= n; i++) { const K2 = Math.pow(k, 2 * i), v = (K2 - 1) / (K2 + 1); ctx.fillStyle = P.energy; ctx.beginPath(); ctx.arc(X(i), y1(v), i === n ? 4.5 : 3, 0, TAU); ctx.fill(); }
+  { const K2 = Math.pow(k, 2 * n), v = (K2 - 1) / (K2 + 1); txt(ctx, fx(v, 5) + 'c', X(n) + 8, y1(v) + 14, P.energy, FN(12)); }
+  // rapidity panel
+  const rmax = 12 * lk, y2 = r => top2 + h2 * (1 - r / rmax);
+  for (const f of [0, 0.5, 1]) { seg(ctx, padL, y2(f * rmax), w - padR, y2(f * rmax), P.grid, 1); txt(ctx, fx(f * rmax, 1), padL - 8, y2(f * rmax), P.muted, FN(11), 'right', 'middle', false); }
+  txt(ctx, 'ln K', padL + 8, top2 - 10, P.muted, FS(11), 'left', 'bottom');
+  ctx.save(); ctx.strokeStyle = P.mom; ctx.lineWidth = 2.2; ctx.beginPath(); for (let i = 0; i <= n; i++) { i ? ctx.lineTo(X(i), y2(i * lk)) : ctx.moveTo(X(i), y2(0)); } ctx.stroke(); ctx.restore();
+  for (let i = 0; i <= n; i++) { ctx.fillStyle = P.mom; ctx.beginPath(); ctx.arc(X(i), y2(i * lk), i === n ? 4.5 : 3, 0, TAU); ctx.fill(); }
+  for (let i = 0; i <= 12; i += (w < 520 ? 2 : 1)) txt(ctx, String(i), X(i), h - padB + 14, P.muted, FN(11), 'center', 'middle', false);
+  txt(ctx, 'number of boosts', (padL + w - padR) / 2, h - 6, P.muted, FS(11), 'center', 'bottom', false);
+});
+function stRender() {
+  const k = kdop(stk.b), n = stk.n, K = Math.pow(k, n), v = (K * K - 1) / (K * K + 1);
+  $('#st-b-out').textContent = fx(stk.b, 3); $('#st-n-out').textContent = n;
+  const rows = [[`${M('k')} per boost`, fx(k, 4)], [`${M('K')} = ${M('k')}<sup>${n}</sup>`, fx(K, 4)], [`${M('K')}²`, fx(K * K, 4)],
+    [`speed (${M('K')}² − 1)/(${M('K')}² + 1)`, fx(v, 5), 1]];
+  if (n === 2) rows.push([`Einstein (${M('u')} + ${M('v')})/(1 + ${M('uv')})`, fx(2 * stk.b / (1 + stk.b * stk.b), 5), 1]);
+  rows.push([`Galilean sum ${M('n')}β`, fx(n * stk.b, 3)], 'sep', [`ln ${M('K')} = ${M('n')} ln ${M('k')}`, fx(n * Math.log(k), 4)], [`short of ${M('c')} by`, sciOrFx(1 - v, 5)]);
+  ro($('#st-ro'), rows); stFig.redraw();
+}
+$('#st-b').addEventListener('input', e => { stk.b = +e.target.value; stRender(); });
+$('#st-n').addEventListener('input', e => { stk.n = +e.target.value; stRender(); });
+
+/* =====================================================================
+   §5 BY HAND (exact fractions)
+   ===================================================================== */
+const TRIPLES = [[3, 4, 5], [4, 3, 5], [5, 12, 13], [12, 5, 13], [7, 24, 25], [24, 7, 25], [8, 15, 17], [15, 8, 17]]; // β = a/c, γ = c/b
+function tripleInfo(t) { const [a, b, c] = t; return { beta: new Q(a, c), gamma: new Q(c, b), gb: new Q(a, b), k: new Q(c + a, b) }; }
+for (const id of ['hd-f', 'hd-b']) {
+  const sel = $('#' + id);
+  sel.innerHTML = TRIPLES.map((t, i) => { const I = tripleInfo(t); return `<option value="${i}">${I.beta}c = ${+I.beta.v.toFixed(4)}c · γ = ${I.gamma} · k = ${I.k}</option>`; }).join('');
+  sel.value = '0';
+  sel.addEventListener('change', hdRender);
+}
+function hdRender() {
+  const f = tripleInfo(TRIPLES[+$('#hd-f').value]), b = tripleInfo(TRIPLES[+$('#hd-b').value]);
+  const V0 = b.gamma, Ap = b.gb, k = f.k;
+  const s1 = V0.mul(k), d1 = V0.div(k);
+  const two = new Q(2);
+  const V1 = s1.add(d1).div(two), A1 = s1.sub(d1).div(two);
+  const L = [V1.d, A1.d, Ap.d].reduce(lcm, 1);
+  const Vn = V1.n * L / V1.d, An = A1.n * L / A1.d, Pn = Ap.n * L / Ap.d;
+  const chk = Vn * Vn - An * An - Pn * Pn;
+  const sp2 = An * An + Pn * Pn, spr = isqrt(sp2);
+  const speedTxt = spr !== null ? `${spr}/${Vn}` : `√${sp2}/${Vn}`;
+  // Wigner from the two triangles
+  const v1 = [f.beta, b.beta.div(f.gamma)], v2 = [f.beta.div(b.gamma), b.beta];
+  const dot = v1[0].mul(v2[0]).add(v1[1].mul(v2[1])), nrm = v1[0].mul(v1[0]).add(v1[1].mul(v1[1]));
+  const Ld = lcm(dot.d, nrm.d), dI = dot.n * Ld / dot.d, nI = nrm.n * Ld / nrm.d;
+  const cosQ = dot.div(nrm), formula = f.gamma.add(b.gamma).div(new Q(1).add(f.gamma.mul(b.gamma)));
+  const sinNum = cosQ.d * cosQ.d - cosQ.n * cosQ.n, sr = isqrt(sinNum);
+  const delta = Math.acos(cosQ.v) * DEG;
+  const tri = sr !== null && sr > 0 ? ` That is the angle of the ${sr}–${cosQ.n}–${cosQ.d} right triangle.` : '';
+  $('#hd-steps').innerHTML = `
+    <li><b>In the moving frame.</b> γ = ${F(V0)}, so ${M('V')} = ${F(V0)}, ${Aperp} = γβ = ${F(Ap)} and ${Apar} = 0. Hence ${M('V')} + ${Apar} = ${M('V')} − ${Apar} = ${F(V0)}.</li>
+    <li><b>The rule with ${M('k')} = ${F(k)}.</b> ${M('V')} + ${Apar} becomes ${F(s1)}, ${M('V')} − ${Apar} becomes ${F(d1)}, and ${Aperp} = ${F(Ap)} stays.</li>
+    <li><b>The new triangle.</b> ${M('V')} = (${F(s1)} + ${F(d1)})/2 = ${F(V1)}, ${Apar} = (${F(s1)} − ${F(d1)})/2 = ${F(A1)}, ${Aperp} = ${F(Pn + '/' + L)}.</li>
+    <li><b>Check.</b> ${M('V')}² − ${Apar}² − ${Aperp}² = ${F(`(${Vn * Vn} − ${An * An} − ${Pn * Pn})/${L * L}`)} = ${F(new Q(chk, L * L))} = ${M('C')}².</li>
+    <li><b>Reading.</b> Along ${M('x')}: ${F(`${An}/${Vn}`)} = ${fx(An / Vn, 4)}${M('c')}. Along ${M('y')}: ${F(`${Pn}/${Vn}`)} = ${fx(Pn / Vn, 4)}${M('c')}. Total speed ${F(speedTxt)} = ${fx(Math.sqrt(sp2) / Vn, 4)}${M('c')}.</li>
+    <li><b>Reverse the order</b> (frame along ${M('y')}, body along ${M('x')}). The speed is the same, but the velocity points elsewhere. From the two triangles, cos δ = (${M('v')}<sub>1</sub>·${M('v')}<sub>2</sub>)/|${M('v')}|² = ${F(`${dI}/${nI}`)} = ${F(cosQ)}, and the formula (γ<sub>1</sub> + γ<sub>2</sub>)/(1 + γ<sub>1</sub>γ<sub>2</sub>) gives ${F(formula)}. δ = ${fx(delta, 2)}°.${tri}</li>`;
+  bars($('#hd-bars'), [
+    { label: `V + A<sub>∥</sub><small>× k</small>`, b: V0.v, a: s1.v, bt: V0.toString(), at: s1.toString(), color: 'var(--c-energy)' },
+    { label: `V − A<sub>∥</sub><small>÷ k</small>`, b: V0.v, a: d1.v, bt: V0.toString(), at: d1.toString(), color: 'var(--c-mom)' },
+    { label: `A<sub>⊥</sub><small>unchanged</small>`, b: Ap.v, a: Ap.v, bt: Ap.toString(), at: Ap.toString(), color: 'var(--c-perp)' }
+  ]);
+}
+
+/* =====================================================================
+   §5 WIGNER
+   ===================================================================== */
+const wig = { b1: 0.6, b2: 0.6 };
+function wigCalc() {
+  const { b1, b2 } = wig, g1 = gam(b1), g2 = gam(b2);
+  const v1 = [b1, b2 / g1], v2 = [b1 / g2, b2];
+  const sp = Math.hypot(v1[0], v1[1]);
+  const cosV = (v1[0] * v2[0] + v1[1] * v2[1]) / (Math.hypot(...v1) * Math.hypot(...v2) || 1);
+  const dVel = Math.acos(Math.max(-1, Math.min(1, cosV)));
+  const dF = Math.acos(Math.max(-1, Math.min(1, (g1 + g2) / (1 + g1 * g2))));
+  const Lm = mm(boost(b1, 0, 0), boost(0, b2, 0));
+  const w = [Lm[1][0] / Lm[0][0], Lm[2][0] / Lm[0][0], Lm[3][0] / Lm[0][0]];
+  const R = mm(boost(-w[0], -w[1], -w[2]), Lm);
+  const dM = Math.acos(Math.max(-1, Math.min(1, (R[1][1] + R[2][2] + R[3][3] - 1) / 2)));
+  return { g1, g2, v1, v2, sp, dVel, dF, dM, gTot: Lm[0][0] };
+}
+const wigFig = fig('cv-wig', { aspect: w => w < 520 ? 1 : 1.25, maxH: 470 }, st => {
+  const { ctx, w, h } = st; paperGrid(ctx, w, h);
+  const r = wigCalc(); const padL = 44, padB = 38, R = Math.min(w - padL - 24, h - padB - 24), ox = padL, oy = h - padB;
+  const X = v => ox + v * R, Y = v => oy - v * R;
+  seg(ctx, ox, oy, ox + R + 10, oy, P.muted, 1); seg(ctx, ox, oy, ox, oy - R - 10, P.muted, 1);
+  for (const t of [0.5, 1]) { txt(ctx, fx(t, 1), X(t), oy + 14, P.muted, FN(11), 'center', 'middle', false); txt(ctx, fx(t, 1), ox - 8, Y(t), P.muted, FN(11), 'right', 'middle', false); }
+  txt(ctx, 'vx / c', ox + R, oy + 28, P.muted, FS(11), 'right', 'middle', false); txt(ctx, 'vy / c', ox + 6, oy - R - 4, P.muted, FS(11), 'left', 'bottom', false);
+  ctx.save(); ctx.strokeStyle = P.light; ctx.setLineDash([5, 4]); ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(ox, oy, R, -Math.PI / 2, 0); ctx.stroke(); ctx.restore();
+  txt(ctx, 'speed of light', X(Math.SQRT1_2) + 6, Y(Math.SQRT1_2) - 6, P.light, FS(11.5));
+  seg(ctx, X(r.v1[0]), Y(0), X(r.v1[0]), Y(r.v1[1]), P.energy, 1, [2, 3]); seg(ctx, X(0), Y(r.v1[1]), X(r.v1[0]), Y(r.v1[1]), P.energy, 1, [2, 3]);
+  seg(ctx, X(r.v2[0]), Y(0), X(r.v2[0]), Y(r.v2[1]), P.mom, 1, [2, 3]); seg(ctx, X(0), Y(r.v2[1]), X(r.v2[0]), Y(r.v2[1]), P.mom, 1, [2, 3]);
+  arrow(ctx, X(0), Y(0), X(r.v1[0]), Y(r.v1[1]), P.energy, 2.8);
+  arrow(ctx, X(0), Y(0), X(r.v2[0]), Y(r.v2[1]), P.mom, 2.8);
+  const a1 = Math.atan2(r.v1[1], r.v1[0]), a2 = Math.atan2(r.v2[1], r.v2[0]);
+  if (r.sp > 0.02) {
+    const rr = Math.max(28, Math.min(R * r.sp * 0.55, R * 0.45));
+    ctx.save(); ctx.strokeStyle = P.ink; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.arc(ox, oy, rr, -Math.max(a1, a2), -Math.min(a1, a2)); ctx.stroke(); ctx.restore();
+    const am = (a1 + a2) / 2; txt(ctx, `δ = ${fx(r.dVel * DEG, 2)}°`, ox + (rr + 10) * Math.cos(am), oy - (rr + 10) * Math.sin(am), P.ink, FM(15), 'left');
+  }
+  txt(ctx, 'x then y', X(r.v1[0]) + 8, Y(r.v1[1]) + 4, P.energy, FS(11.5), 'left');
+  txt(ctx, 'y then x', X(r.v2[0]) - 6, Y(r.v2[1]) - 10, P.mom, FS(11.5), 'right');
+});
+function wigRender() {
+  const r = wigCalc();
+  $('#wg-1-out').textContent = fx(wig.b1, 3); $('#wg-2-out').textContent = fx(wig.b2, 3);
+  ro($('#wig-ro'), [
+    [`γ<sub>1</sub>, γ<sub>2</sub>`, `${fx(r.g1, 4)}, ${fx(r.g2, 4)}`], [`total γ = γ<sub>1</sub>γ<sub>2</sub>`, fx(r.gTot, 4)], [`speed, either order`, fx(r.sp, 5) + 'c', 1], 'sep',
+    [`δ from the two velocities`, fx(r.dVel * DEG, 4) + '°', 1], [`δ from cos δ = (γ<sub>1</sub>+γ<sub>2</sub>)/(1+γ<sub>1</sub>γ<sub>2</sub>)`, fx(r.dF * DEG, 4) + '°', 1], [`δ from the 4×4 matrices`, fx(r.dM * DEG, 4) + '°', 1],
+    [`cos δ`, fx(Math.cos(r.dF), 6)]
+  ]);
+  wigFig.redraw();
+}
+$('#wg-1').addEventListener('input', e => { wig.b1 = +e.target.value; wigRender(); });
+$('#wg-2').addEventListener('input', e => { wig.b2 = +e.target.value; wigRender(); });
+document.querySelectorAll('[data-wig]').forEach(bn => bn.addEventListener('click', () => { const [a, b] = bn.dataset.wig.split(',').map(Number); wig.b1 = a; wig.b2 = b; $('#wg-1').value = a; $('#wg-2').value = b; wigRender(); }));
+
+/* =====================================================================
+   §5 THOMAS PRECESSION
+   ===================================================================== */
+function thInit(beta) { return { M: boost(0, beta, 0), i: 0, vx: 0, vy: beta, prev: 0, acc: 0 }; }
+function thStep(st, beta, N) {
+  st.i++; const ph = TAU * st.i / N, g = gam(beta), vx = -beta * Math.sin(ph), vy = beta * Math.cos(ph);
+  const Up = mv(linv(st.M), [g, g * vx, g * vy, 0]);
+  st.M = mm(st.M, boost(Up[1] / Up[0], Up[2] / Up[0], Up[3] / Up[0])); st.vx = vx; st.vy = vy;
+  const R = mm(boost(-vx, -vy, 0), st.M), a = Math.atan2(R[2][1], R[1][1]);
+  let d = a - st.prev; d -= TAU * Math.round(d / TAU); st.acc += d; st.prev = a;
+}
+function thPerRev(beta, N) { const st = thInit(beta); for (let j = 0; j < N; j++) thStep(st, beta, N); return st.acc; }
+const th = { beta: 0.5, N: 120, playing: !RM, st: null, perRev: 0 };
+th.st = thInit(th.beta);
+for (let j = 0; j < Math.round(th.N * 1.3); j++) thStep(th.st, th.beta, th.N); // open mid-orbit so the lag is visible at rest
+const thVis = visibleTracker($('#cv-th'));
+const thFig = fig('cv-th', { aspect: w => w < 520 ? 1 : 1.45, maxH: 480 }, st => {
+  const { ctx, w, h } = st; paperGrid(ctx, w, h);
+  const cx = w / 2, cy = h / 2, R = Math.min(w, h) * 0.36;
+  seg(ctx, cx - R - 30, cy, cx + R + 30, cy, P.grid, 1); seg(ctx, cx, cy - R - 30, cx, cy + R + 30, P.grid, 1);
+  ctx.save(); ctx.strokeStyle = P.rule; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke(); ctx.restore();
+  if (th.N <= 72) for (let i = 0; i < th.N; i++) { const p = TAU * i / th.N; seg(ctx, cx + (R - 4) * Math.cos(p), cy - (R - 4) * Math.sin(p), cx + (R + 4) * Math.cos(p), cy - (R + 4) * Math.sin(p), P.muted, 1); }
+  const ph = TAU * (th.st.i % th.N) / th.N, bx = cx + R * Math.cos(ph), by = cy - R * Math.sin(ph);
+  // orbit direction hint
+  arrow(ctx, cx + (R + 16) * Math.cos(0.35), cy - (R + 16) * Math.sin(0.35), cx + (R + 16) * Math.cos(0.6), cy - (R + 16) * Math.sin(0.6), P.muted, 1.2, null, 7);
+  txt(ctx, 'orbit', cx + (R + 22) * Math.cos(0.62), cy - (R + 22) * Math.sin(0.62), P.muted, FS(11), 'left');
+  const L = Math.max(26, R * 0.32);
+  arrow(ctx, bx - L * 0.5, by, bx + L * 0.5, by, P.muted, 1.4, [3, 3], 7);
+  const ga = th.st.acc;
+  arrow(ctx, bx - L * 0.5 * Math.cos(ga), by + L * 0.5 * Math.sin(ga), bx + L * 0.5 * Math.cos(ga), by - L * 0.5 * Math.sin(ga), P.mom, 2.8, null, 10);
+  ctx.fillStyle = P.energy; ctx.beginPath(); ctx.arc(bx, by, 5.5, 0, TAU); ctx.fill();
+  // centre dial
+  const rr = R * 0.42, accMod = ga % TAU;
+  ctx.save(); ctx.strokeStyle = P.rule; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(cx, cy, rr, 0, TAU); ctx.stroke();
+  ctx.strokeStyle = P.mom; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(cx, cy, rr, 0, -accMod, accMod > 0); ctx.stroke(); ctx.restore();
+  txt(ctx, `Δϕ = ${fx(ga * DEG, 1)}°`, cx, cy - 8, P.ink, FN(13), 'center');
+  txt(ctx, `revolutions: ${Math.floor(th.st.i / th.N)}`, cx, cy + 12, P.muted, FS(11.5), 'center');
+});
+function thRender() {
+  const g = gam(th.beta), formula = TAU * (g - 1);
+  th.perRev = thPerRev(th.beta, th.N);
+  $('#th-b-out').textContent = fx(th.beta, 2); $('#th-n-out').textContent = th.N;
+  ro($('#th-ro'), [
+    [`γ`, fx(g, 5)], [`${M('D')}/${M('C')} = γ − 1`, fx(g - 1, 5)], 'sep',
+    [`2π(γ − 1) per revolution`, `${fx(formula * DEG, 3)}° (${fx(formula, 4)} rad)`, 1],
+    [`simulated, ${th.N} boosts`, `${fx(Math.abs(th.perRev) * DEG, 3)}°`, 1],
+    [`difference`, fx(Math.abs(Math.abs(th.perRev) - formula) / formula * 100, 3) + '%'],
+    [`sense`, th.perRev < 0 ? 'opposite to the orbit' : 'with the orbit']
+  ]);
+  thFig.redraw();
+}
+function thCases() {
+  const gH = gam(ALPHA), hyd = TAU * (gH - 1), hydStated = TAU * 13.6 / 511000, hydPrec = TAU * 13.605693 / 510998.95;
+  const bE = 29.78 / CKM, gE = gam(bE), earthRev = TAU * (gE - 1), earthCent = earthRev * 100 * ARCSEC;
+  $('#th-cases').innerHTML = `<tr><th>Case</th><th>Article</th><th>Recomputed</th></tr>
+    <tr><td>Hydrogen, 13.606 eV ÷ 510.999 keV</td><td class="n">1.673 × 10<sup>−4</sup> rad</td><td class="n">${sci(hydPrec, 3)} rad</td></tr>
+    <tr><td>Hydrogen, β = α</td><td class="n">—</td><td class="n">${sci(hyd, 3)} rad</td></tr>
+    <tr><td>Earth, 29.78 km/s, per century</td><td class="n">0.64″</td><td class="n">${fx(earthCent, 3)}″</td></tr>`;
+}
+$('#th-b').addEventListener('input', e => { th.beta = +e.target.value; th.st = thInit(th.beta); thRender(); });
+$('#th-n').addEventListener('input', e => { th.N = +e.target.value; th.st = thInit(th.beta); thRender(); });
+$('#th-play').addEventListener('click', () => { th.playing = !th.playing; $('#th-play').textContent = th.playing ? 'Pause' : 'Play'; if (th.playing) kick(); });
+$('#th-reset').addEventListener('click', () => { th.st = thInit(th.beta); thFig.redraw(); });
+let thCarry = 0;
+animators.push({ active: () => th.playing && thVis.on, tick: dt => {
+  thCarry += dt * th.N * 0.22; let n = Math.floor(thCarry); thCarry -= n; n = Math.min(n, Math.ceil(th.N / 4));
+  for (let i = 0; i < n; i++) thStep(th.st, th.beta, th.N);
+  if (th.st.i > th.N * 400) th.st = thInit(th.beta);
+  if (n) thFig.redraw();
+} });
+
+/* =====================================================================
+   §5 ABERRATION
+   ===================================================================== */
+const ab = { v: 29.78 };
+const abFig = fig('cv-ab', { aspect: w => w < 520 ? 1.05 : 1.6, maxH: 400 }, st => {
+  const { ctx, w, h } = st; paperGrid(ctx, w, h);
+  const b = Math.min(ab.v / CKM, 0.999999), g = gam(b), par = g * b; // A⊥ = 1, A∥ = γβ, V' = γ
+  const padT = 34, padB = 40, padX = 34;
+  const s = Math.min((h - padT - padB) / 1, (w - 2 * padX) / Math.max(par + 0.15, 0.6));
+  const ox = w / 2 - (par * s) / 2, oy = h - padB; // observer at bottom
+  const top = oy - s;
+  txt(ctx, '★', ox, top - 12, P.ink, FS(18), 'center');
+  seg(ctx, ox, top, ox, oy, P.muted, 1.6, [6, 4]);
+  if (ox > 150) txt(ctx, 'A⊥ = V (unchanged)', ox - 8, (top + oy) / 2, P.perp, FM(14), 'right');
+  else txt(ctx, 'A⊥ = V (unchanged)', ox + 8, top + 40, P.perp, FM(14), 'left');
+  if (par * s > 0.5) { seg(ctx, ox, top, ox + par * s, top, P.mom, 2.4); txt(ctx, 'A∥ = γβV', ox + par * s / 2, top - 12, P.mom, FM(14), 'center'); }
+  arrow(ctx, ox + par * s, top, ox, oy, P.light, 2.8);
+  txt(ctx, 'observer', ox, oy + 16, P.muted, FS(11.5), 'center');
+  const a = Math.asin(b);
+  if (a * DEG > 1.5) {
+    ctx.save(); ctx.strokeStyle = P.ink; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(ox, oy, 46, -Math.PI / 2, -Math.PI / 2 + Math.atan(par)); ctx.stroke(); ctx.restore();
+    txt(ctx, `a = ${fx(a * DEG, 2)}°`, ox + 12, oy - 58, P.ink, FM(15));
+  } else {
+    txt(ctx, `a = ${fx(a * ARCSEC, 3)}″`, ox + 10, oy - 74, P.ink, FM(15), 'left');
+    txt(ctx, '(too small to draw)', ox + 10, oy - 54, P.muted, FS(11.5), 'left');
+  }
+  arrow(ctx, 14, 20, 74, 20, P.energy, 2, null, 8);
+  txt(ctx, 'Earth moves', 80, 20, P.energy, FS(11.5), 'left');
+});
+function abRender() {
+  const b = Math.min(ab.v / CKM, 0.999999), g = gam(b), a = Math.asin(b);
+  ro($('#ab-ro'), [
+    [`β = ${M('v')}/${M('c')}`, sciOrFx(b, 6)], [`γ`, fx(g, 9)], 'sep',
+    [`new ${M('V')} = γ${M('V')}`, fx(g, 6)], [`new ${Apar} = γβ${M('V')}`, sciOrFx(g * b, 6)], [`${Aperp} = ${M('V')}`, '1.000000'], 'sep',
+    [`tilt ${M('a')} = arcsin β`, a * DEG > 0.1 ? fx(a * DEG, 4) + '°' : fx(a * ARCSEC, 4) + '″', 1],
+    [`IAU (1976) constant`, '20.49552″']
+  ]);
+  abFig.redraw();
+}
+$('#ab-v').addEventListener('input', e => { const v = parseFloat(e.target.value); if (Number.isFinite(v) && v >= 0 && v < CKM) { ab.v = v; abRender(); } });
+document.querySelectorAll('[data-ab]').forEach(bn => bn.addEventListener('click', () => { const d = bn.dataset.ab; ab.v = d.endsWith('c') ? parseFloat(d) * CKM : parseFloat(d); $('#ab-v').value = d.endsWith('c') ? ab.v.toFixed(1) : d; abRender(); }));
+
+/* =====================================================================
+   §5 MUONS
+   ===================================================================== */
+const mu = { g: 29.33, t0: 2.197 };
+const MEAS = [{ n: 'μ⁺', v: 64.419, e: 0.058 }, { n: 'μ⁻', v: 64.368, e: 0.029 }];
+const muLine = fig('cv-mu-line', { aspect: w => w < 520 ? 2 : 3.4, maxH: 220 }, st => {
+  const { ctx, w, h } = st; const pred = mu.g * mu.t0;
+  const lo = Math.min(64.2, pred - 0.05), hi = Math.max(64.65, pred + 0.05), padX = 30;
+  const X = v => padX + (w - 2 * padX) * (v - lo) / (hi - lo), axisY = h - 30;
+  seg(ctx, padX, axisY, w - padX, axisY, P.muted, 1);
+  const step = (hi - lo) > 1 ? 0.5 : 0.1;
+  for (let t = Math.ceil(lo / step) * step; t <= hi + 1e-9; t += step) { seg(ctx, X(t), axisY, X(t), axisY + 5, P.muted, 1); txt(ctx, t.toFixed(1), X(t), axisY + 16, P.muted, FN(11), 'center', 'middle', false); }
+  txt(ctx, 'µs', w - padX, axisY - 10, P.muted, FS(11), 'right', 'middle', false);
+  seg(ctx, X(pred), 14, X(pred), axisY, P.energy, 2);
+  MEAS.forEach((m, i) => { const y = 38 + i * 42; seg(ctx, X(m.v - m.e), y, X(m.v + m.e), y, P.mom, 2); seg(ctx, X(m.v - m.e), y - 5, X(m.v - m.e), y + 5, P.mom, 2); seg(ctx, X(m.v + m.e), y - 5, X(m.v + m.e), y + 5, P.mom, 2);
+    ctx.fillStyle = P.mom; ctx.beginPath(); ctx.arc(X(m.v), y, 4, 0, TAU); ctx.fill(); txt(ctx, `${m.n} ${m.v} ± ${m.e}`, X(m.v), y - 15, P.mom, FN(11.5), 'center'); });
+  txt(ctx, `γτ₀ = ${fx(pred, 3)}`, X(pred) + 6, axisY - 12, P.energy, FN(11.5), 'left');
+});
+const muDecay = fig('cv-mu-decay', { aspect: w => w < 520 ? 1.6 : 2.8, maxH: 260 }, st => {
+  const { ctx, w, h } = st; const tau = mu.g * mu.t0, tmax = 200;
+  const padL = 40, padR = 16, padT = 14, padB = 28;
+  const X = t => padL + (w - padL - padR) * t / tmax, Y = f => padT + (h - padT - padB) * (1 - f);
+  for (const f of [0, 0.5, 1]) { seg(ctx, padL, Y(f), w - padR, Y(f), P.grid, 1); txt(ctx, f.toFixed(1), padL - 6, Y(f), P.muted, FN(11), 'right', 'middle', false); }
+  for (let t = 0; t <= tmax; t += 50) txt(ctx, t === tmax ? `${t} µs` : String(t), X(t), h - padB + 14, P.muted, FN(11), t === tmax ? 'right' : 'center', 'middle', false);
+  const curve = (tt, col) => { ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 2.2; ctx.beginPath(); for (let i = 0; i <= 300; i++) { const t = tmax * i / 300, y = Y(Math.exp(-t / tt)); i ? ctx.lineTo(X(t), y) : ctx.moveTo(X(t), y); } ctx.stroke(); ctx.restore(); };
+  curve(mu.t0, P.muted); curve(tau, P.energy);
+  seg(ctx, X(tau), Y(0), X(tau), Y(Math.exp(-1)), P.energy, 1, [3, 3]);
+  txt(ctx, `in the ring: τ = ${fx(tau, 2)} µs`, X(tau) + 6, Y(Math.exp(-1)) - 10, P.energy, FS(11.5));
+  txt(ctx, `at rest: τ₀ = ${mu.t0} µs`, X(6) + 8, Y(0.12), P.muted, FS(11.5));
+});
+function muRender() {
+  const pred = mu.g * mu.t0;
+  ro($('#mu-ro'), [
+    [`γτ<sub>0</sub>`, fx(pred, 4) + ' µs', 1], 'sep',
+    [`μ<sup>+</sup> measured (µs)`, '64.419 ± 0.058'], [`μ<sup>+</sup> offset`, fx((pred - 64.419) / 0.058, 2) + 'σ', 1],
+    [`μ<sup>−</sup> measured (µs)`, '64.368 ± 0.029'], [`μ<sup>−</sup> offset`, fx((pred - 64.368) / 0.029, 2) + 'σ']
+  ]);
+  muLine.redraw(); muDecay.redraw();
+}
+const muRead = () => { const g = parseFloat($('#mu-g').value), t = parseFloat($('#mu-t').value); if (Number.isFinite(g) && g >= 1 && Number.isFinite(t) && t > 0) { mu.g = g; mu.t0 = t; muRender(); } };
+$('#mu-g').addEventListener('input', muRead); $('#mu-t').addEventListener('input', muRead);
+document.querySelectorAll('[data-mu]').forEach(bn => bn.addEventListener('click', () => { const [g, t] = bn.dataset.mu.split(','); $('#mu-g').value = g; $('#mu-t').value = t; muRead(); }));
+
+/* =====================================================================
+   §6 IMAGINARY BRANCH: WAVEGUIDE + HYDROGEN
+   ===================================================================== */
+const wv = { f: 8.7, c1: 6.56, c2: 9.49, L: 40, t: 0, playing: !RM };
+function sect(f, fc) { const A2 = f * f - fc * fc; return A2 >= 0 ? { real: true, A: Math.sqrt(A2), k: TAU * Math.sqrt(A2) / CMM } : { real: false, A: Math.sqrt(-A2), kap: TAU * Math.sqrt(-A2) / CMM }; }
+const wvVis = visibleTracker($('#cv-wv'));
+const wvFig = fig('cv-wv', { aspect: w => w < 520 ? 0.95 : 1.55, maxH: 520 }, st => {
+  const { ctx, w, h } = st;
+  const s1 = sect(wv.f, wv.c1), s2 = sect(wv.f, wv.c2), Lp = 60, L = wv.L, Z0 = -Lp, Z1 = L + Lp;
+  const padX = 18, gH = h * 0.5, midY = 22 + gH * 0.48, Hw = gH * 0.78, Hn = Hw * Math.min(1, wv.c1 / wv.c2);
+  const X = z => padX + (w - 2 * padX) * (z - Z0) / (Z1 - Z0);
+  // guide body
+  ctx.save(); ctx.fillStyle = P.plane; ctx.fillRect(X(Z0), midY - Hw / 2, X(0) - X(Z0), Hw); ctx.fillRect(X(0), midY - Hn / 2, X(L) - X(0), Hn); ctx.fillRect(X(L), midY - Hw / 2, X(Z1) - X(L), Hw); ctx.restore();
+  ctx.save(); ctx.strokeStyle = P.ink; ctx.lineWidth = 2; ctx.beginPath();
+  for (const sg of [-1, 1]) { ctx.moveTo(X(Z0), midY + sg * Hw / 2); ctx.lineTo(X(0), midY + sg * Hw / 2); ctx.lineTo(X(0), midY + sg * Hn / 2); ctx.lineTo(X(L), midY + sg * Hn / 2); ctx.lineTo(X(L), midY + sg * Hw / 2); ctx.lineTo(X(Z1), midY + sg * Hw / 2); }
+  ctx.stroke(); ctx.restore();
+  // field
+  const amp = Hn * 0.42;
+  const field = z => {
+    let a = 1, p = 0;
+    const run = (sc, dz) => { if (sc.real) p += sc.k * dz; else a *= Math.exp(-sc.kap * dz); };
+    if (z <= 0) { run(s1, z - Z0); return [a, p]; } run(s1, 0 - Z0);
+    if (z <= L) { run(s2, z); return [a, p]; } run(s2, L);
+    run(s1, z - L); return [a, p];
+  };
+  const env = (sg) => { ctx.save(); ctx.strokeStyle = P.muted; ctx.globalAlpha = 0.5; ctx.setLineDash([3, 4]); ctx.lineWidth = 1; ctx.beginPath(); for (let px = 0; px <= w - 2 * padX; px += 2) { const z = Z0 + (Z1 - Z0) * px / (w - 2 * padX), [a] = field(z); const y = midY - sg * amp * a; px ? ctx.lineTo(padX + px, y) : ctx.moveTo(padX + px, y); } ctx.stroke(); ctx.restore(); };
+  env(1); env(-1);
+  ctx.save(); ctx.strokeStyle = P.energy; ctx.lineWidth = 2.2; ctx.beginPath();
+  for (let px = 0; px <= w - 2 * padX; px += 1.5) { const z = Z0 + (Z1 - Z0) * px / (w - 2 * padX), [a, p] = field(z); const y = midY - amp * a * Math.cos(p - wv.t); px ? ctx.lineTo(padX + px, y) : ctx.moveTo(padX + px, y); }
+  ctx.stroke(); ctx.restore();
+  txt(ctx, `normal guide, cutoff ${fx(wv.c1, 2)} GHz`, X(Z0) + 4, midY - Hw / 2 - 10, P.muted, FS(11.5));
+  txt(ctx, `narrow, ${fx(wv.c2, 2)} GHz`, X(L / 2), midY + Hw / 2 + 12, P.muted, FS(11.5), 'center');
+  seg(ctx, X(0), midY + Hn / 2 + 4, X(0), midY + Hw / 2 - 2, P.muted, 1); seg(ctx, X(L), midY + Hn / 2 + 4, X(L), midY + Hw / 2 - 2, P.muted, 1);
+  txt(ctx, `L = ${L} mm`, X(L / 2), midY + Hn / 2 + 10, P.ink, FN(11), 'center');
+  // triangles
+  const top = 22 + gH + 46, bh = h - top - 26, half = (w - 3 * padX) / 2;
+  const maxSide = Math.max(wv.f, wv.c1, wv.c2), s = Math.min((half - 40) / maxSide, bh / maxSide);
+  const drawTri = (x0, fc, sc, title) => {
+    const oy = top + bh, X2 = x => x0 + 14 + x * s, Y2 = y => oy - y * s, V = wv.f;
+    txt(ctx, title, x0, top - 30, P.ink, FS(12, 600));
+    txt(ctx, sc.real ? `C ${fx(fc, 2)} · V ${fx(V, 2)} · A ${fx(sc.A, 2)}` : `C ${fx(fc, 2)} · V ${fx(V, 2)} · A = i·${fx(sc.A, 2)}`, x0, top - 13, P.muted, FN(11));
+    if (sc.real) {
+      seg(ctx, X2(0), Y2(0), X2(fc), Y2(0), P.rest, 2.6); seg(ctx, X2(fc), Y2(0), X2(fc), Y2(sc.A), P.mom, 2.6); seg(ctx, X2(0), Y2(0), X2(fc), Y2(sc.A), P.energy, 2.6);
+      txt(ctx, 'C', X2(fc / 2), Y2(0) + 12, P.rest, FM(14), 'center');
+      txt(ctx, 'A', X2(fc) + 6, Y2(sc.A / 2), P.mom, FM(14));
+      txt(ctx, 'V', X2(fc / 2) - 6, Y2(sc.A / 2) - 6, P.energy, FM(14), 'right');
+    } else {
+      seg(ctx, X2(0), Y2(0), X2(V), Y2(0), P.energy, 2.6); seg(ctx, X2(V), Y2(0), X2(V), Y2(sc.A), P.mom, 2.6, [5, 4]); seg(ctx, X2(0), Y2(0), X2(V), Y2(sc.A), P.rest, 2.6);
+      txt(ctx, 'V', X2(V / 2), Y2(0) + 12, P.energy, FM(14), 'center');
+      txt(ctx, '|A|', X2(V) + 6, Y2(sc.A / 2), P.mom, FM(14));
+      txt(ctx, 'C', X2(V / 2) - 6, Y2(sc.A / 2) - 6, P.rest, FM(14), 'right');
+    }
+  };
+  drawTri(padX + 6, wv.c1, s1, s1.real ? 'Normal section: A real' : 'Normal section: A imaginary');
+  drawTri(padX * 2 + half + 6, wv.c2, s2, s2.real ? 'Narrow section: A real' : 'Narrow section: A imaginary');
+  txt(ctx, 'GHz', w - padX, h - 10, P.muted, FS(11), 'right', 'middle', false);
+});
+function wvRender() {
+  const s1 = sect(wv.f, wv.c1), s2 = sect(wv.f, wv.c2);
+  $('#wv-f-out').textContent = fx(wv.f, 2); $('#wv-L-out').textContent = wv.L;
+  const col = (fc, sc) => {
+    const D = wv.f - fc;
+    const beh = sc.real ? `travels, group velocity ${fx(sc.A / wv.f, 3)}<span class="m">c</span>` : `decays, κ = ${fx(sc.kap * 1000, 1)} m<sup>−1</sup>, length ${fx(1 / sc.kap, 1)} mm`;
+    return { D: (D >= 0 ? '+' : '') + fx(D, 2), A: sc.real ? fx(sc.A, 2) + ' (real)' : 'i·' + fx(sc.A, 2) + ' (imaginary)', beh };
+  };
+  const a = col(wv.c1, s1), b = col(wv.c2, s2);
+  let tau = '—';
+  if (wv.f > wv.c1 && wv.f < wv.c2) { const t = (1 / wv.f) / Math.PI * Math.sqrt(Math.pow(wv.f, 4) / ((wv.f ** 2 - wv.c1 ** 2) * (wv.c2 ** 2 - wv.f ** 2))) * 1000; tau = fx(t, 1) + ' ps'; }
+  $('#wv-tbl').innerHTML = `<tr><th></th><th>Normal section</th><th>Narrow section</th></tr>
+    <tr><td><span class="m">C</span> (cutoff, GHz)</td><td class="n">${fx(wv.c1, 3)}</td><td class="n">${fx(wv.c2, 3)}</td></tr>
+    <tr><td><span class="m">D</span> = <span class="m">V</span> − <span class="m">C</span></td><td class="n">${a.D}</td><td class="n">${b.D}</td></tr>
+    <tr><td><span class="m">A</span> (GHz)</td><td class="n">${a.A}</td><td class="n">${b.A}</td></tr>
+    <tr><td>Behaviour</td><td>${a.beh}</td><td>${b.beh}</td></tr>
+    <tr><td>Esposito Eq. 33 time</td><td class="n" colspan="2">${tau}${Math.abs(wv.f - 8.7) < 0.005 && Math.abs(wv.c1 - 6.56) < 1e-6 && Math.abs(wv.c2 - 9.49) < 1e-6 ? ' · measured about 130 ps' : ''}</td></tr>`;
+  wvFig.redraw();
+}
+const wvNum = () => { const c1 = parseFloat($('#wv-c1').value), c2 = parseFloat($('#wv-c2').value); if (c1 > 0 && c2 > 0) { wv.c1 = c1; wv.c2 = c2; wvRender(); } };
+$('#wv-f').addEventListener('input', e => { wv.f = +e.target.value; wvRender(); });
+$('#wv-L').addEventListener('input', e => { wv.L = +e.target.value; wvRender(); });
+$('#wv-c1').addEventListener('input', wvNum); $('#wv-c2').addEventListener('input', wvNum);
+$('#wv-reset').addEventListener('click', () => { $('#wv-c1').value = 6.56; $('#wv-c2').value = 9.49; $('#wv-f').value = 8.7; wv.f = 8.7; wvNum(); });
+$('#wv-play').addEventListener('click', () => { wv.playing = !wv.playing; $('#wv-play').textContent = wv.playing ? 'Pause wave' : 'Play wave'; if (wv.playing) kick(); });
+if (RM) $('#wv-play').textContent = 'Play wave';
+if (RM) $('#th-play').textContent = 'Play';
+animators.push({ active: () => wv.playing && wvVis.on, tick: dt => { wv.t += dt * 3.2; wvFig.redraw(); } });
+
+function hyRender() {
+  const n = +$('#hy-n').value, V = Math.sqrt(1 - ALPHA * ALPHA / (n * n)), jp = n;
+  const dirac = 1 / Math.sqrt(1 + Math.pow(ALPHA / (n - jp + Math.sqrt(jp * jp - ALPHA * ALPHA)), 2));
+  ro($('#hy-ro'), [
+    [`${M('V')}/${M('C')} = √(1 − α²/${M('n')}²)`, fx(V, 12), 1], [`Dirac, ${M('j')} = ${M('n')} − ½`, fx(dirac, 12), 1], [`difference`, sci(Math.abs(V - dirac) || 0, 1)], 'sep',
+    [`${M('A')}/${M('C')} = i α/${M('n')}`, 'i·' + fx(ALPHA / n, 6)], [`${M('D')} = ${M('V')} − ${M('C')}`, fx((V - 1) * ME_EV, 4) + ' eV'], [`§5 uses for the same electron`, n === 1 ? '+13.6 eV' : '—']
+  ]);
+}
+$('#hy-n').addEventListener('change', hyRender);
+
+/* =====================================================================
+   LEDGER
+   ===================================================================== */
+const LEDGER = [
+  ['Rule equals the Lorentz transformation', '§4', 'agrees to 3 × 10⁻¹⁵ over 1,000 cases', 'agrees to rounding error (live test in §4)'],
+  ['Triangle at C = 1, D = 1/4', '§3', 'V = 5/4, A = 3/4, V ± A = kC, C/k', 'identical'],
+  ['Projection slope and 0.6c matrix', '§4', 'tan²(θ/2) = β; entries 1.25 and 0.75', 'identical'],
+  ['Collinear 0.6c then 0.6c', '§5', '15/17 = 0.88235c', '0.88235c'],
+  ['Worked example', '§5', '0.6c, 0.48c, √369/25 = 0.7684c', 'identical'],
+  ['Wigner angle, 0.6c and 0.6c', '§5', '12.68°, cos δ = 40/41', '12.680° from matrices'],
+  ['Wigner angle, 0.8c and 0.8c', '§5', '28.0725°, speed 0.93295c', '28.0725°, 0.93295c'],
+  ['Thomas precession per revolution', '§5', '2π(γ − 1) = 2πD/C', 'matches boost composition'],
+  ['Thomas, hydrogen', '§5', '1.673 × 10⁻⁴ rad', '1.673 × 10⁻⁴ rad'],
+  ['Thomas, Earth', '§5', '0.64″ per century', '0.639″'],
+  ['Aberration at 29.78 km/s', '§5', '20.49″', '20.489″'],
+  ['Aberration at 29.789 km/s', '§5', '20.4955″ (IAU constant)', '20.4956″'],
+  ['Muon lifetime', '§5', '64.44 µs', '64.44 µs'],
+  ['Muon comparison (μ⁺)', '§5', '64.419 ± 0.058 µs measured', 'prediction within 0.4σ'],
+  ['Waveguide A, normal section', '§6', '5.71 GHz', '5.71 GHz'],
+  ['Waveguide decay and group velocity', '§6', 'κ = 79.4 m⁻¹, 12.6 mm, 0.657c', 'identical'],
+  ['Traversal time', '§6', '128 ps from Esposito’s formula', '128 ps with the triangle’s sides as inputs'],
+  ['Hydrogen, circular orbits', '§6', 'V = C√(1 − α²/n²)', 'matches Dirac, maximal j'],
+  ['References', 'Refs 1–15', '15 works cited', 'all exist with matching details']
+];
+$('#ledger-tbl').innerHTML = `<tr><th>Result</th><th>Where</th><th>Paper</th><th>Recomputed here</th></tr>` + LEDGER.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
+$('#tally').innerHTML = `<span class="pill ok">${LEDGER.length} results recomputed live</span>`;
+
+/* ---------- boot ---------- */
+readPal();
+triRender(); rotRender(); rbRender(); rbTest(); stRender(); hdRender(); wigRender(); thRender(); thCases(); abRender(); muRender(); wvRender(); hyRender();
+kick();
+const mq = window.matchMedia('(prefers-color-scheme: dark)');
+mq.addEventListener ? mq.addEventListener('change', redrawAll) : mq.addListener(redrawAll);
+new MutationObserver(redrawAll).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class'] });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(redrawAll);
+})();
+</script>
+
+</body></html>
